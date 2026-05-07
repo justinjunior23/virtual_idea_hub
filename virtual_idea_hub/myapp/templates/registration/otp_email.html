@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Verification Code</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      background: #f4f4f0;
+      font-family: 'DM Sans', Arial, sans-serif;
+      color: #1a1a1a;
+    }
+    .wrapper {
+      max-width: 520px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #e2e8e4;
+    }
+    .header {
+      background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .header-title {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .body {
+      padding: 36px 32px;
+    }
+    .greeting {
+      font-size: 15px;
+      color: #1a1a1a;
+      margin: 0 0 8px;
+    }
+    .intro {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      margin: 0 0 28px;
+    }
+    .otp-box {
+      background: #f0faf4;
+      border: 1.5px solid #9ae6b4;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .otp-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #2d6a4f;
+      margin-bottom: 10px;
+    }
+    .otp-code {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: 12px;
+      color: #1b4332;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+    }
+    .otp-expiry {
+      font-size: 12px;
+      color: #888;
+      margin-top: 10px;
+    }
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+      margin: 0 0 8px;
+    }
+    .warning {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .footer {
+      border-top: 1px solid #eee;
+      padding: 18px 32px;
+      background: #fafafa;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">💡</div>
+      <div class="header-title">Virtual Idea Hub</div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Hi {{ user.first_name|default:user.username }},</p>
+      <p class="intro">
+        Thanks for signing up! Use the 6-digit code below to verify your
+        email address and activate your account.
+      </p>
+
+      <!-- OTP box -->
+      <div class="otp-box">
+        <div class="otp-label">Your verification code</div>
+        <div class="otp-code">{{ otp_code }}</div>
+        <div class="otp-expiry">⏱ Expires in 10 minutes</div>
+      </div>
+
+      <p class="note">
+        Enter this code on the verification page to complete your registration.
+      </p>
+      <p class="warning">
+        If you didn't create an account on Virtual Idea Hub, you can safely
+        ignore this email. Someone may have entered your email address by mistake.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      © 2026 Virtual Idea Hub &nbsp;·&nbsp; This is an automated message, please do not reply.
+    </div>
+
+  </div>
+</body>
+</html>

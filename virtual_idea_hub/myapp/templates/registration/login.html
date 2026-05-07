@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Login - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="width: 50%; margin: auto;">
+    <fieldset style="border: 2px solid #ccc; border-radius: 5px; padding: 20px; background-color: #f2f2f2;">
+        <legend style="font-weight: bold; font-size: 1.2em; color: #333; margin-bottom: 10px;">Login</legend>
+
+        <form method="post" action="{% url 'login' %}" style="margin-top: 20px;">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username" style="display: block; margin-bottom: 5px;">Username:</label>
+                <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+            </div>
+            <div class="form-group">
+                <label for="password" style="display: block; margin-bottom: 5px;">Password:</label>
+                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; border-radius: 5px; border: none; background-color: #007bff; color: #fff; cursor: pointer;">Login</button>
+        </form>
+    </fieldset>
+</div>
+{% endblock %}

@@ -1,0 +1,903 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Virtual Idea Hub{% endblock %}</title>
+
+    <!-- Fonts: Clash Display + Cabinet Grotesk via Google Fonts fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --surface2: #1e1e1e;
+            --border: rgba(255,255,255,0.08);
+            --border-strong: rgba(255,255,255,0.15);
+            --text: #f0ede8;
+            --text-muted: #7a7672;
+            --text-soft: #b5b0a8;
+            --accent: #c8f564;          /* electric lime */
+            --accent-dim: rgba(200,245,100,0.12);
+            --accent2: #ff6b35;         /* warm coral */
+            --accent3: #7c9cff;         /* periwinkle */
+            --nav-h: 72px;
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* ─────────────────────────────────────────
+           TOP TICKER STRIP
+        ───────────────────────────────────────── */
+        .ticker-strip {
+            background: var(--accent);
+            color: #0d0d0d;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            overflow: hidden;
+            height: 32px;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-inner {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            white-space: nowrap;
+            animation: tickerScroll 28s linear infinite;
+        }
+        .ticker-inner span {
+            padding: 0 2.5rem;
+            border-right: 1px solid rgba(0,0,0,0.15);
+        }
+        .ticker-dot {
+            display: inline-block;
+            width: 5px; height: 5px;
+            background: #0d0d0d;
+            border-radius: 50%;
+            margin-right: 0.6rem;
+            vertical-align: middle;
+        }
+        @keyframes tickerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ─────────────────────────────────────────
+           NAVBAR
+        ───────────────────────────────────────── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            height: var(--nav-h);
+            background: rgba(13,13,13,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        /* Logo */
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        .logo-mark {
+            width: 38px; height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #0d0d0d;
+            letter-spacing: -0.05em;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .logo-wrap:hover .logo-mark { transform: rotate(-6deg) scale(1.05); }
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        .logo-text em {
+            font-style: normal;
+            color: var(--accent);
+        }
+        .logo-sub {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* Nav links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.1rem;
+            list-style: none;
+        }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 4px; left: 50%; right: 50%;
+            height: 1.5px;
+            background: var(--accent);
+            border-radius: 1px;
+            transition: left 0.2s, right 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a:hover::after { left: 12px; right: 12px; }
+        .nav-links a.active { color: var(--accent); }
+        .nav-links a.active::after { left: 12px; right: 12px; }
+
+        /* Divider */
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-strong);
+            margin: 0 0.5rem;
+        }
+
+        /* Right side */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        /* Search */
+        .search-wrap {
+            position: relative;
+        }
+        .search-form {
+            display: flex;
+            align-items: center;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-form:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(200,245,100,0.12);
+        }
+        .search-form input {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 0.5rem 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text);
+            width: 190px;
+        }
+        .search-form input::placeholder { color: var(--text-muted); }
+        .search-form button {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: color 0.15s;
+        }
+        .search-form button:hover { color: var(--accent); }
+
+        /* Buttons */
+        .btn-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.48rem 1rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.18s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-ghost {
+            border-color: var(--border-strong);
+            color: var(--text-soft);
+            background: transparent;
+        }
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #0d0d0d;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover {
+            background: #d4f97a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(200,245,100,0.3);
+        }
+
+        /* Mobile toggle */
+        .nav-toggle {
+            display: none;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.48rem 0.65rem;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.15s;
+        }
+        .nav-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ─────────────────────────────────────────
+           CATEGORY STRIP
+        ───────────────────────────────────────── */
+        .ideas-section {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 3.5rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .ideas-section::before {
+            content: 'IDEAS';
+            position: absolute;
+            top: -0.15em;
+            right: -0.05em;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 12rem;
+            color: rgba(255,255,255,0.02);
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: -0.05em;
+        }
+
+        .ideas-inner {
+            max-width: 1380px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .ideas-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            gap: 1rem;
+        }
+        .ideas-eyebrow {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .ideas-eyebrow::before {
+            content: '';
+            display: inline-block;
+            width: 20px; height: 1.5px;
+            background: var(--accent);
+        }
+        .ideas-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            color: var(--text);
+        }
+
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .cat-tile {
+            display: flex;
+            flex-direction: column;
+            padding: 1.6rem 1.5rem;
+            background: var(--bg);
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+        }
+        .cat-tile::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--tile-accent, var(--accent));
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .cat-tile:hover::before { opacity: 0.06; }
+        .cat-tile:hover { transform: scale(1.015); z-index: 2; }
+        .cat-tile:hover .cat-tile-icon {
+            background: var(--tile-accent, var(--accent));
+            color: #0d0d0d;
+            transform: rotate(-8deg) scale(1.1);
+        }
+        .cat-tile:hover .cat-arrow { opacity: 1; transform: translate(0,0); }
+
+        .cat-tile-icon {
+            width: 44px; height: 44px;
+            border-radius: 11px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-strong);
+            color: var(--tile-accent, var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: auto;
+            transition: all 0.25s;
+        }
+        .cat-tile-name {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            margin-top: 1.25rem;
+            margin-bottom: 0.3rem;
+            position: relative;
+        }
+        .cat-tile-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            position: relative;
+        }
+        .cat-arrow {
+            position: absolute;
+            top: 1.25rem; right: 1.25rem;
+            font-size: 0.8rem;
+            color: var(--tile-accent, var(--accent));
+            opacity: 0;
+            transform: translate(-4px, 4px);
+            transition: all 0.2s;
+        }
+
+        /* ─────────────────────────────────────────
+           MAIN CONTENT
+        ───────────────────────────────────────── */
+        main.page-main { flex: 1; }
+
+        .content-wrapper {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+        }
+
+        /* ─────────────────────────────────────────
+           FOOTER
+        ───────────────────────────────────────── */
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem 2rem;
+            margin-top: auto;
+        }
+        .footer-inner {
+            max-width: 1380px;
+            margin: 0 auto;
+        }
+        .footer-top {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 3rem;
+            padding-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .footer-brand-name {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 0.6rem;
+        }
+        .footer-brand-name em { font-style: normal; color: var(--accent); }
+        .footer-tagline {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 280px;
+        }
+        .footer-col-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-soft);
+            margin-bottom: 1rem;
+        }
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.84rem;
+            transition: color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .footer-links a::before {
+            content: '';
+            display: inline-block;
+            width: 4px; height: 4px;
+            background: var(--border-strong);
+            border-radius: 50%;
+            transition: background 0.15s;
+        }
+        .footer-links a:hover { color: var(--accent); }
+        .footer-links a:hover::before { background: var(--accent); }
+
+        .footer-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .footer-copy {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .social-links {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+        }
+        .social-links a {
+            width: 36px; height: 36px;
+            border-radius: 9px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.18s;
+        }
+        .social-links a:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0d0d0d;
+            transform: translateY(-2px);
+        }
+
+        /* ─────────────────────────────────────────
+           SHARED UTILITIES
+        ───────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+        .fade-up-2 { animation: fadeUp 0.55s 0.1s cubic-bezier(0.22,1,0.36,1) both; }
+        .fade-up-3 { animation: fadeUp 0.55s 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+
+        /* ─────────────────────────────────────────
+           RESPONSIVE
+        ───────────────────────────────────────── */
+        @media (max-width: 1100px) {
+            .cat-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 860px) {
+            .cat-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 680px) {
+            .nav-links, .search-wrap { display: none; }
+            .nav-toggle { display: block; }
+            .cat-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+        }
+        @media (max-width: 420px) {
+            .cat-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Mobile nav drawer */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+        }
+        .mobile-nav.open { display: block; }
+        .mobile-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+        }
+        .mobile-drawer {
+            position: absolute;
+            top: 0; right: 0;
+            width: 300px;
+            height: 100%;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+        }
+        .mobile-nav.open .mobile-drawer { transform: translateX(0); }
+        .mobile-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .mobile-close {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 36px; height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mobile-close:hover { border-color: var(--accent); color: var(--accent); }
+        .mobile-nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .mobile-nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0.9rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-soft);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .mobile-nav-links a:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+        .mobile-nav-links a i { color: var(--accent); width: 16px; text-align: center; }
+        .mobile-auth { display: flex; flex-direction: column; gap: 0.6rem; margin-top: auto; }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── TICKER ── -->
+<div class="ticker-strip" aria-hidden="true">
+    <div class="ticker-inner">
+        <span><span class="ticker-dot"></span>Share your ideas</span>
+        <span><span class="ticker-dot"></span>Report issues</span>
+        <span><span class="ticker-dot"></span>Drive community change</span>
+        <span><span class="ticker-dot"></span>Submit innovations</span>
+        <span><span class="ticker-dot"></span>Your voice matters</span>
+        <span><span class="ticker-dot"></span>Submit emergencies</span>
+        <span><span class="ticker-dot"></span>Make suggestions</span>
+        <!-- duplicate for seamless loop -->
+        <span><span class="ticker-dot"></span>Share your ideas</span>
+        <span><span class="ticker-dot"></span>Report issues</span>
+        <span><span class="ticker-dot"></span>Drive community change</span>
+        <span><span class="ticker-dot"></span>Submit innovations</span>
+        <span><span class="ticker-dot"></span>Your voice matters</span>
+        <span><span class="ticker-dot"></span>Submit emergencies</span>
+        <span><span class="ticker-dot"></span>Make suggestions</span>
+    </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+    <div class="nav-inner">
+
+        <!-- Logo -->
+        <a href="{% url 'home_view' %}" class="logo-wrap">
+            <div class="logo-mark">V</div>
+            <div>
+                <div class="logo-text">Virtual <em>Idea</em> Hub</div>
+                <div class="logo-sub">Community Platform</div>
+            </div>
+        </a>
+
+        <!-- Nav links -->
+        <ul class="nav-links">
+            <li><a href="{% url 'home_view' %}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About</a></li>
+            <li><a href="{% url 'contact' %}"><i class="fas fa-envelope"></i> Contact</a></li>
+        </ul>
+
+        <div class="nav-divider"></div>
+
+        <!-- Right side -->
+        <div class="nav-right">
+            <div class="search-wrap">
+                <form class="search-form" action="{% url 'search_results' %}" method="GET">
+                    <input type="search" placeholder="Search ideas…" name="query">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            <a href="{% url 'register' %}" class="btn-nav btn-ghost">
+                <i class="fas fa-user-plus"></i> Register
+            </a>
+            <a href="{% url 'login' %}" class="btn-nav btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+        </div>
+
+        <!-- Mobile toggle -->
+        <button class="nav-toggle" onclick="openMobileNav()" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</header>
+
+<!-- ── MOBILE NAV ── -->
+<div class="mobile-nav" id="mobileNav" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="mobile-overlay" onclick="closeMobileNav()"></div>
+    <div class="mobile-drawer">
+        <div class="mobile-drawer-header">
+            <div class="logo-text" style="font-family:'Playfair Display',serif; font-size:1rem;">Virtual <em style="font-style:normal;color:var(--accent);">Idea</em> Hub</div>
+            <button class="mobile-close" onclick="closeMobileNav()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="{% url 'home_view' %}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About</a></li>
+            <li><a href="{% url 'contact' %}"><i class="fas fa-envelope"></i> Contact</a></li>
+            <li style="height:1px; background:var(--border); margin: 0.5rem 0;"></li>
+            <li><a href="{% url 'create_awareness' %}"><i class="fas fa-bullhorn"></i> Awareness</a></li>
+            <li><a href="{% url 'create_innovation' %}"><i class="fas fa-lightbulb"></i> Innovation</a></li>
+            <li><a href="{% url 'create_suggestion' %}"><i class="fas fa-comment"></i> Suggestions</a></li>
+            <li><a href="{% url 'create_emergency' %}"><i class="fas fa-exclamation-triangle"></i> Emergency</a></li>
+            <li><a href="{% url 'create_recommendation' %}"><i class="fas fa-thumbs-up"></i> Recommendations</a></li>
+            <li><a href="{% url 'create_complain' %}"><i class="fas fa-exclamation-circle"></i> Complaints</a></li>
+            <li><a href="{% url 'post_reporting' %}"><i class="fas fa-chart-line"></i> Reporting</a></li>
+            <li><a href="{% url 'create_others' %}"><i class="fas fa-ellipsis-h"></i> Others</a></li>
+        </ul>
+        <div class="mobile-auth">
+            <a href="{% url 'register' %}" class="btn-nav btn-ghost" style="justify-content:center;"><i class="fas fa-user-plus"></i> Register</a>
+            <a href="{% url 'login' %}" class="btn-nav btn-primary" style="justify-content:center;"><i class="fas fa-sign-in-alt"></i> Login</a>
+        </div>
+    </div>
+</div>
+
+<!-- ── PAGE CONTENT ── -->
+<main class="page-main">
+
+    {% block content %}{% endblock %}
+
+    <!-- ── CATEGORY GRID ── -->
+    <section class="ideas-section">
+        <div class="ideas-inner">
+            <div class="ideas-header fade-up">
+                <div>
+                    <div class="ideas-eyebrow">Choose a category</div>
+                    <h2 class="ideas-title">What's on your mind?</h2>
+                </div>
+            </div>
+
+            <div class="cat-grid fade-up-2">
+
+                <a href="{% url 'create_awareness' %}" class="cat-tile" style="--tile-accent:#f87171;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-bullhorn"></i></div>
+                    <div class="cat-tile-name">Awareness</div>
+                    <div class="cat-tile-desc">Raise awareness on important community topics.</div>
+                </a>
+
+                <a href="{% url 'create_innovation' %}" class="cat-tile" style="--tile-accent:#facc15;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="cat-tile-name">Innovation</div>
+                    <div class="cat-tile-desc">Share bold new ideas that can drive real change.</div>
+                </a>
+
+                <a href="{% url 'create_suggestion' %}" class="cat-tile" style="--tile-accent:#a78bfa;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="cat-tile-name">Suggestions</div>
+                    <div class="cat-tile-desc">Offer constructive feedback and actionable ideas.</div>
+                </a>
+
+                <a href="{% url 'create_emergency' %}" class="cat-tile" style="--tile-accent:#fb923c;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="cat-tile-name">Emergency</div>
+                    <div class="cat-tile-desc">Flag urgent issues that need immediate attention.</div>
+                </a>
+
+                <a href="{% url 'create_recommendation' %}" class="cat-tile" style="--tile-accent:#34d399;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-thumbs-up"></i></div>
+                    <div class="cat-tile-name">Recommendations</div>
+                    <div class="cat-tile-desc">Suggest improvements and best practices.</div>
+                </a>
+
+                <a href="{% url 'create_complain' %}" class="cat-tile" style="--tile-accent:#22d3ee;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="cat-tile-name">Complaints</div>
+                    <div class="cat-tile-desc">Report issues or grievances that need resolution.</div>
+                </a>
+
+                <a href="{% url 'post_reporting' %}" class="cat-tile" style="--tile-accent:#c8f564;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="cat-tile-name">Reporting</div>
+                    <div class="cat-tile-desc">Submit formal reports with supporting details.</div>
+                </a>
+
+                <a href="{% url 'others_dashboard' %}" class="cat-tile" style="--tile-accent:#818cf8;">
+                    <span class="cat-arrow"><i class="fas fa-arrow-up-right"></i></span>
+                    <div class="cat-tile-icon"><i class="fas fa-ellipsis-h"></i></div>
+                    <div class="cat-tile-name">Others</div>
+                    <div class="cat-tile-desc">Anything that doesn't fit elsewhere goes here.</div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-top">
+            <div>
+                <div class="footer-brand-name">Virtual <em>Idea</em> Hub</div>
+                <p class="footer-tagline">A community platform where ideas become action. Share, report, and drive change — all in one place.</p>
+            </div>
+            <div>
+                <div class="footer-col-title">Navigation</div>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home_view' %}">Home</a></li>
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-title">Legal</div>
+                <ul class="footer-links">
+                    <li><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+                    <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-copy">&copy; 2024 Virtual Idea Hub. All rights reserved.</p>
+            <ul class="social-links">
+                <li><a href="https://www.facebook.com/profile.php?id=100087194013072" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a></li>
+                <li><a href="https://twitter.com/Justin_w_Rwanda" aria-label="Twitter"><i class="fab fa-twitter"></i></a></li>
+                <li><a href="https://www.instagram.com/your-instagram-profile" aria-label="Instagram"><i class="fab fa-instagram"></i></a></li>
+            </ul>
+        </div>
+    </div>
+</footer>
+
+<script>
+    function openMobileNav() {
+        const nav = document.getElementById('mobileNav');
+        nav.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileNav() {
+        const nav = document.getElementById('mobileNav');
+        nav.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMobileNav();
+    });
+
+    // Mark active nav link
+    const links = document.querySelectorAll('.nav-links a, .mobile-nav-links a');
+    links.forEach(link => {
+        if (link.href === window.location.href) link.classList.add('active');
+    });
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

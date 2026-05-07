@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── Page layout ── */
+    .register-page {
+        min-height: calc(100vh - 68px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+        background: var(--bg);
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 520px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.07);
+        animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Card header ── */
+    .register-card-top {
+        background: linear-gradient(135deg, var(--accent) 0%, #1b4332 100%);
+        padding: 2rem 2rem 1.75rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .register-card-top::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 160px; height: 160px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+    }
+    .register-card-top::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: 40px;
+        width: 120px; height: 120px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+    }
+    .register-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        position: relative;
+        z-index: 1;
+    }
+    .register-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.75;
+        margin-top: 0.3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── Card body ── */
+    .register-body {
+        padding: 2rem;
+    }
+
+    /* ── Flash messages ── */
+    .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        margin-bottom: 1.25rem;
+        line-height: 1.5;
+    }
+    .alert-error {
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        color: #c53030;
+    }
+    .alert-success {
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #276749;
+    }
+    .alert-icon { flex-shrink: 0; font-size: 0.9rem; }
+
+    /* ── Form structure ── */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .form-group {
+        margin-bottom: 1.1rem;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.4rem;
+    }
+    .required-star { color: #e53e3e; margin-left: 2px; }
+    .label-optional {
+        color: var(--muted);
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    /* ── Inputs ── */
+    .form-control {
+        width: 100%;
+        background: var(--bg);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 0.65rem 0.85rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+        background: #fff;
+    }
+    .form-control::placeholder { color: #b0aca3; }
+    .form-control.is-invalid { border-color: #e53e3e; }
+
+    /* ── Inline error list ── */
+    .errorlist {
+        list-style: none;
+        margin: 0.3rem 0 0;
+        padding: 0;
+    }
+    .errorlist li {
+        font-size: 0.75rem;
+        color: #e53e3e;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .errorlist li::before { content: '⚠'; font-size: 0.7rem; }
+
+    /* ── Non-field errors ── */
+    .non-field-errors {
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.82rem;
+        color: #c53030;
+    }
+
+    /* ── Divider ── */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    /* ── Submit button ── */
+    .btn-register {
+        width: 100%;
+        padding: 0.8rem;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Syne', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        transition: all 0.2s;
+    }
+    .btn-register:hover {
+        background: #235c43;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(45,106,79,0.3);
+    }
+    .btn-register:active { transform: translateY(0); }
+
+    /* ── Login link ── */
+    .login-link {
+        text-align: center;
+        margin-top: 1.25rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+    }
+    .login-link a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .login-link a:hover { text-decoration: underline; }
+
+    /* ── OTP info box ── */
+    .otp-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.8rem;
+        color: #276749;
+        line-height: 1.5;
+    }
+    .otp-info-icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+        .form-row { grid-template-columns: 1fr; }
+        .register-body { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+    <div class="register-card">
+
+        <!-- Card header -->
+        <div class="register-card-top">
+            <div class="register-title">Create Account</div>
+            <div class="register-subtitle">Join Virtual Idea Hub and share your ideas.</div>
+        </div>
+
+        <!-- Card body -->
+        <div class="register-body">
+
+            <!-- ① Django messages (success / error from view) -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+                    <span class="alert-icon">{% if message.tags == 'success' %}✓{% else %}⚠{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ② Non-field form errors (e.g. password mismatch) -->
+            {% if form.non_field_errors %}
+            <div class="non-field-errors">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- ③ OTP info hint -->
+            <div class="otp-info">
+                <span class="otp-info-icon">✉</span>
+                <span>After submitting, a <strong>6-digit verification code</strong> will be sent to your email address. You'll need it to activate your account.</span>
+            </div>
+
+            <form method="post" action="{% url 'register' %}" novalidate>
+                {% csrf_token %}
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label for="id_username">Username <span class="required-star">*</span></label>
+                    <input
+                        type="text"
+                        id="id_username"
+                        name="username"
+                        class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                        placeholder="e.g. john_doe"
+                        value="{{ form.username.value|default:''|escape }}"
+                        maxlength="150"
+                        autocomplete="username"
+                        required>
+                    {% if form.username.errors %}
+                        <ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <!-- First & Last name -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_first_name">First Name <span class="required-star">*</span></label>
+                        <input
+                            type="text"
+                            id="id_first_name"
+                            name="first_name"
+                            class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                            placeholder="John"
+                            value="{{ form.first_name.value|default:''|escape }}"
+                            maxlength="30"
+                            autocomplete="given-name"
+                            required>
+                        {% if form.first_name.errors %}
+                            <ul class="errorlist">{% for e in form.first_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_last_name">Last Name <span class="required-star">*</span></label>
+                        <input
+                            type="text"
+                            id="id_last_name"
+                            name="last_name"
+                            class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                            placeholder="Doe"
+                            value="{{ form.last_name.value|default:''|escape }}"
+                            maxlength="30"
+                            autocomplete="family-name"
+                            required>
+                        {% if form.last_name.errors %}
+                            <ul class="errorlist">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="id_email">Email Address <span class="required-star">*</span></label>
+                    <input
+                        type="email"
+                        id="id_email"
+                        name="email"
+                        class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                        placeholder="john@example.com"
+                        value="{{ form.email.value|default:''|escape }}"
+                        autocomplete="email"
+                        required>
+                    {% if form.email.errors %}
+                        <ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <!-- Phone (only shown if form has the field) -->
+                {% if form.phone_number %}
+                <div class="form-group">
+                    <label for="id_phone_number">
+                        Phone Number <span class="label-optional">(optional)</span>
+                    </label>
+                    <input
+                        type="tel"
+                        id="id_phone_number"
+                        name="phone_number"
+                        class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+                        placeholder="+250 7XX XXX XXX"
+                        value="{{ form.phone_number.value|default:''|escape }}"
+                        maxlength="15"
+                        autocomplete="tel">
+                    {% if form.phone_number.errors %}
+                        <ul class="errorlist">{% for e in form.phone_number.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="divider">Password</div>
+
+                <!-- Passwords -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_password1">Password <span class="required-star">*</span></label>
+                        <input
+                            type="password"
+                            id="id_password1"
+                            name="password1"
+                            class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                            placeholder="Min. 8 characters"
+                            autocomplete="new-password"
+                            required>
+                        {% if form.password1.errors %}
+                            <ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_password2">Confirm Password <span class="required-star">*</span></label>
+                        <input
+                            type="password"
+                            id="id_password2"
+                            name="password2"
+                            class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                            placeholder="Repeat password"
+                            autocomplete="new-password"
+                            required>
+                        {% if form.password2.errors %}
+                            <ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register">Create Account &rarr;</button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </div>
+
+        </div><!-- /.register-body -->
+    </div><!-- /.register-card -->
+</div><!-- /.register-page -->
+{% endblock %}

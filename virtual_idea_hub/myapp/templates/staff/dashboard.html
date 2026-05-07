@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f6f9;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: #1a73e8;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navbar-user {
+            color: white;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .btn-logout {
+            padding: 7px 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.2s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+        /* ── Page body ── */
+        .page {
+            padding: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* ── Welcome banner ── */
+        .welcome-banner {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            border-left: 5px solid #1a73e8;
+        }
+
+        .welcome-banner h1 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .welcome-banner p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .welcome-badge {
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* ── Summary cards ── */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            text-align: center;
+            border-top: 4px solid #ccc;
+        }
+
+        .card.pending  { border-top-color: #ffc107; }
+        .card.review   { border-top-color: #17a2b8; }
+        .card.resolved { border-top-color: #28a745; }
+        .card.rejected { border-top-color: #dc3545; }
+        .card.total    { border-top-color: #1a73e8; }
+
+        .card-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Section title ── */
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Table ── */
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 13px 16px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #1a73e8;
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover           { background: #eef3ff; }
+
+        td { color: #444; vertical-align: middle; }
+
+        /* ── Status badges ── */
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+        }
+
+        .badge-pending  { background: #ffc107; color: #333; }
+        .badge-review   { background: #17a2b8; }
+        .badge-resolved { background: #28a745; }
+        .badge-rejected { background: #dc3545; }
+
+        /* ── Progress bar ── */
+        .progress-wrap {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            width: 100px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #28a745;
+            border-radius: 10px;
+        }
+
+        /* ── View button ── */
+        .btn-view {
+            padding: 6px 14px;
+            background: #1a73e8;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-view:hover { background: #1558b0; }
+
+        /* ── Recent feedback ── */
+        .feedback-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+
+        .feedback-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feedback-item:last-child { border-bottom: none; }
+
+        .feedback-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #1a73e8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .feedback-body { flex: 1; }
+
+        .feedback-meta {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .feedback-meta strong { color: #333; }
+
+        .feedback-msg {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .feedback-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #aaa;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="#" class="navbar-brand">🛠 Staff Panel</a>
+    <div class="navbar-right">
+        <span class="navbar-user">👤 {{ request.user.get_full_name|default:request.user.username }}</span>
+        <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+    </div>
+</nav>
+
+<div class="page">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div>
+            <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}! 👋</h1>
+            <p>Here's an overview of all submissions that need your attention.</p>
+        </div>
+        <span class="welcome-badge">🛡 Staff</span>
+    </div>
+
+    <!-- Summary Cards -->
+    {% with total_pending=0 total_review=0 total_resolved=0 total_rejected=0 total_all=0 %}
+    <div class="summary-cards">
+        <div class="card pending">
+            <div class="card-number">
+                {% for slug, stat in stats.items %}{% if forloop.first %}{{ stat.pending }}{% endif %}{% endfor %}
+                {# We compute totals below in the table #}
+            </div>
+            <div class="card-label">⏳ Pending</div>
+        </div>
+        <div class="card review">
+            <div class="card-number">—</div>
+            <div class="card-label">🔍 In Review</div>
+        </div>
+        <div class="card resolved">
+            <div class="card-number">—</div>
+            <div class="card-label">✅ Resolved</div>
+        </div>
+        <div class="card rejected">
+            <div class="card-number">—</div>
+            <div class="card-label">❌ Rejected</div>
+        </div>
+        <div class="card total">
+            <div class="card-number">{{ stats|length }}</div>
+            <div class="card-label">📂 Categories</div>
+        </div>
+    </div>
+    {% endwith %}
+
+    <!-- Submissions Table -->
+    <div class="section-title">📋 Submissions by Category</div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Category</th>
+                    <th>Pending</th>
+                    <th>In Review</th>
+                    <th>Resolved</th>
+                    <th>Rejected</th>
+                    <th>Total</th>
+                    <th>Progress</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for slug, stat in stats.items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ stat.label }}</strong></td>
+                    <td><span class="badge badge-pending">{{ stat.pending }}</span></td>
+                    <td><span class="badge badge-review">{{ stat.in_review }}</span></td>
+                    <td><span class="badge badge-resolved">{{ stat.resolved }}</span></td>
+                    <td><span class="badge badge-rejected">{{ stat.rejected }}</span></td>
+                    <td><strong>{{ stat.total }}</strong></td>
+                    <td>
+                        {% if stat.total > 0 %}
+                            {% widthratio stat.resolved stat.total 100 as pct %}
+                            <span style="font-size:12px; color:#888;">{{ pct }}%</span>
+                            <div class="progress-wrap">
+                                <div class="progress-bar" style="width: {{ pct }}%;"></div>
+                            </div>
+                        {% else %}
+                            <span style="font-size:12px; color:#ccc;">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'staff_category_list' slug %}" class="btn-view">View →</a></td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9" class="empty-state">No categories found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recent Feedback -->
+    <div class="section-title">💬 Recent Feedback Activity</div>
+    <div class="feedback-list">
+        {% for fb in recent_feedback %}
+            <div class="feedback-item">
+                <div class="feedback-avatar">{{ fb.staff.username|first|upper }}</div>
+                <div class="feedback-body">
+                    <div class="feedback-meta">
+                        <strong>{{ fb.staff.username }}</strong> &nbsp;·&nbsp;
+                        {{ fb.category|capfirst }} &nbsp;·&nbsp;
+                        {{ fb.created_at|timesince }} ago
+                        &nbsp;
+                        <span class="feedback-status badge
+                            {% if fb.new_status == 'resolved' %}badge-resolved
+                            {% elif fb.new_status == 'rejected' %}badge-rejected
+                            {% elif fb.new_status == 'in_review' %}badge-review
+                            {% else %}badge-pending{% endif %}">
+                            {{ fb.new_status|capfirst }}
+                        </span>
+                    </div>
+                    <div class="feedback-msg">{{ fb.message|truncatechars:120 }}</div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">No feedback activity yet.</div>
+        {% endfor %}
+    </div>
+
+</div>
+</body>
+</html>

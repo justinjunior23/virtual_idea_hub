@@ -1,0 +1,23 @@
+<!-- user_input_form.html -->
+
+{% extends 'base.html' %}
+{% block title %}Add/Edit Content - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Add/Edit Content</h1>
+
+    <form method="post" action="{% url 'content_submit' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">Title:</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="content">Content:</label>
+            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}

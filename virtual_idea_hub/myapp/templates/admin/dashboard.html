@@ -1,0 +1,1010 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0d1320;
+    --surface2: #121929;
+    --border: rgba(99,179,237,0.12);
+    --accent: #63b3ed;
+    --accent2: #f6ad55;
+    --accent3: #68d391;
+    --accent4: #fc8181;
+    --accent5: #b794f4;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --muted2: #718096;
+    --glow: rgba(99,179,237,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Floating glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99,179,237,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    to { transform: translate(200px, 150px); }
+  }
+
+  /* ─── SIDEBAR ───────────────────────────────────────────── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 32px 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-badge {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent5));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .sidebar-nav {
+    padding: 24px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .nav-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 12px;
+    margin: 12px 0 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted2);
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: rgba(99,179,237,0.08);
+    color: var(--accent);
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent5), var(--accent));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; color: var(--text); font-weight: 500; truncate; }
+  .user-role { font-size: 10px; color: var(--muted2); }
+
+  .logout-btn {
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .logout-btn:hover { color: var(--accent4); }
+
+  /* ─── MAIN ───────────────────────────────────────────────── */
+  .main {
+    margin-left: 240px;
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── TOPBAR ─────────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-sub {
+    font-size: 12px;
+    color: var(--muted2);
+    margin-top: 4px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .time-badge {
+    font-size: 11px;
+    color: var(--muted2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--accent3);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse-green 2s infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(104,211,145,0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(104,211,145,0); }
+  }
+
+  /* ─── HERO STATS ─────────────────────────────────────────── */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .hero-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .hero-card:nth-child(1) { animation-delay: 0.05s; }
+  .hero-card:nth-child(2) { animation-delay: 0.1s; }
+  .hero-card:nth-child(3) { animation-delay: 0.15s; }
+  .hero-card:nth-child(4) { animation-delay: 0.2s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99,179,237,0.3);
+  }
+
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .hero-card.blue::before  { background: linear-gradient(90deg, var(--accent), transparent); }
+  .hero-card.orange::before{ background: linear-gradient(90deg, var(--accent2), transparent); }
+  .hero-card.green::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .hero-card.red::before   { background: linear-gradient(90deg, var(--accent4), transparent); }
+
+  .hero-glow {
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    opacity: 0.08;
+  }
+
+  .hero-card.blue .hero-glow  { background: var(--accent); }
+  .hero-card.orange .hero-glow{ background: var(--accent2); }
+  .hero-card.green .hero-glow { background: var(--accent3); }
+  .hero-card.red .hero-glow   { background: var(--accent4); }
+
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 12px;
+  }
+
+  .hero-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .hero-card.blue .hero-value  { color: var(--accent); }
+  .hero-card.orange .hero-value{ color: var(--accent2); }
+  .hero-card.green .hero-value { color: var(--accent3); }
+  .hero-card.red .hero-value   { color: var(--accent4); }
+
+  .hero-meta {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .trend { font-size: 10px; }
+  .trend.up   { color: var(--accent3); }
+  .trend.down { color: var(--accent4); }
+
+  /* ─── SECTION HEADER ─────────────────────────────────────── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    content: '';
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .section-count {
+    font-size: 10px;
+    color: var(--muted2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ─── CATEGORY TABLE ─────────────────────────────────────── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease 0.3s both;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 500;
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(99,179,237,0.05);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr {
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover {
+    background: rgba(99,179,237,0.04);
+  }
+
+  .cat-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .num.total   { color: var(--text); }
+  .num.pending { color: var(--accent2); }
+  .num.resolved{ color: var(--accent3); }
+  .num.week    { color: var(--accent); }
+
+  .bar-wrap {
+    width: 80px;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 0.8s ease;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .badge.pending  { background: rgba(246,173,85,0.12);  color: var(--accent2); }
+  .badge.resolved { background: rgba(104,211,145,0.12); color: var(--accent3); }
+
+  /* ─── BOTTOM ROW ─────────────────────────────────────────── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    animation: fadeUp 0.5s ease 0.4s both;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .panel-body {
+    padding: 8px 0;
+  }
+
+  /* Users panel */
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(99,179,237,0.04);
+    transition: background 0.15s;
+  }
+
+  .user-row:last-child { border-bottom: none; }
+  .user-row:hover { background: rgba(99,179,237,0.04); }
+
+  .user-av {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .user-av.c0 { background: rgba(99,179,237,0.15); color: var(--accent); }
+  .user-av.c1 { background: rgba(246,173,85,0.15);  color: var(--accent2); }
+  .user-av.c2 { background: rgba(104,211,145,0.15); color: var(--accent3); }
+  .user-av.c3 { background: rgba(183,148,244,0.15); color: var(--accent5); }
+  .user-av.c4 { background: rgba(252,129,129,0.15); color: var(--accent4); }
+
+  .user-details { flex: 1; min-width: 0; }
+  .user-n { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-d { font-size: 10px; color: var(--muted2); }
+
+  .role-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .role-tag.admin   { background: rgba(183,148,244,0.12); color: var(--accent5); }
+  .role-tag.staff   { background: rgba(99,179,237,0.12);  color: var(--accent); }
+  .role-tag.regular { background: rgba(255,255,255,0.06); color: var(--muted2); }
+
+  /* Staff feedback panel */
+  .fb-row {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(99,179,237,0.04);
+    transition: background 0.15s;
+  }
+
+  .fb-row:last-child { border-bottom: none; }
+  .fb-row:hover { background: rgba(99,179,237,0.04); }
+
+  .fb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .fb-staff {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .fb-time {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .fb-text {
+    font-size: 11px;
+    color: var(--muted2);
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* User Stats mini row */
+  .stat-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-mini {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-mini-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .stat-mini-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-top: 4px;
+  }
+
+  /* Donut chart */
+  .donut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 20px;
+  }
+
+  .donut-svg { transform: rotate(-90deg); }
+
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-val {
+    margin-left: auto;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text);
+    padding-left: 16px;
+  }
+
+  /* Quick actions */
+  .actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease 0.25s both;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    background: rgba(99,179,237,0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .action-btn.primary {
+    background: rgba(99,179,237,0.1);
+    border-color: rgba(99,179,237,0.3);
+    color: var(--accent);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div>CONTROL</div>
+        <div class="logo-sub">Admin Panel</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Overview</div>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon">◈</span> Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">◻</span> Analytics
+    </a>
+
+    <div class="nav-label">Content</div>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">⊞</span> All Posts
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">⚠</span> Emergency
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">◎</span> Reports
+    </a>
+
+    <div class="nav-label">Management</div>
+    <a class="nav-item" href="{% url 'admin_user_list' %}">
+      <span class="nav-icon">◈</span> Users
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">◻</span> Settings
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar">{{ request.user.username|slice:":2"|upper }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ request.user.username }}</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-btn" title="Logout">⇥</a>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Welcome back, {{ request.user.username }} — here's what's happening.</div>
+    </div>
+    <div class="topbar-right">
+      <div class="time-badge">
+        <span class="status-dot"></span>Live
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Stats -->
+  <div class="hero-grid">
+    <div class="hero-card blue">
+      <div class="hero-glow"></div>
+      <div class="hero-label">Total Posts</div>
+      <div class="hero-value">{{ total_posts }}</div>
+      <div class="hero-meta">
+        Across all categories
+      </div>
+    </div>
+    <div class="hero-card orange">
+      <div class="hero-glow"></div>
+      <div class="hero-label">Pending Review</div>
+      <div class="hero-value">{{ total_pending }}</div>
+      <div class="hero-meta">
+        <span class="trend up">▲</span> Awaiting action
+      </div>
+    </div>
+    <div class="hero-card green">
+      <div class="hero-glow"></div>
+      <div class="hero-label">Resolved</div>
+      <div class="hero-value">{{ total_resolved }}</div>
+      <div class="hero-meta">
+        <span class="trend up">▲</span> Completed
+      </div>
+    </div>
+    <div class="hero-card red">
+      <div class="hero-glow"></div>
+      <div class="hero-label">This Week</div>
+      <div class="hero-value">{{ total_new }}</div>
+      <div class="hero-meta">
+        New submissions
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="actions-row">
+    <a href="{% url 'admin_user_list' %}" class="action-btn primary">
+      ◈ Manage Users
+    </a>
+    <a href="#" class="action-btn">⊞ View All Posts</a>
+    <a href="#" class="action-btn">⚠ Emergency Queue</a>
+    <a href="#" class="action-btn">◎ Export Report</a>
+    <a href="{% url 'logout' %}" class="action-btn">⇥ Logout</a>
+  </div>
+
+  <!-- Category Table -->
+  <div class="section-header">
+    <div class="section-title">Category Breakdown</div>
+    <div class="section-count">{{ category_stats|length }} categories</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Total</th>
+          <th>Pending</th>
+          <th>Resolved</th>
+          <th>This Week</th>
+          <th>Resolution</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in category_stats %}
+        <tr>
+          <td>
+            <div class="cat-name">
+              <div class="cat-dot" style="background:
+                {% if cat.slug == 'awareness' %}#63b3ed
+                {% elif cat.slug == 'innovation' %}#b794f4
+                {% elif cat.slug == 'suggestion' %}#68d391
+                {% elif cat.slug == 'emergency' %}#fc8181
+                {% elif cat.slug == 'recommendation' %}#f6ad55
+                {% elif cat.slug == 'complaint' %}#fc8181
+                {% elif cat.slug == 'reporting' %}#63b3ed
+                {% else %}#4a5568{% endif %}
+              "></div>
+              {{ cat.label }}
+            </div>
+          </td>
+          <td><span class="num total">{{ cat.total }}</span></td>
+          <td><span class="num pending">{{ cat.pending }}</span></td>
+          <td><span class="num resolved">{{ cat.resolved }}</span></td>
+          <td><span class="num week">{{ cat.this_week }}</span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="bar-wrap">
+                <div class="bar-fill" style="width:{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %}"></div>
+              </div>
+              <span style="font-size:10px;color:var(--muted2)">
+                {% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %}
+              </span>
+            </div>
+          </td>
+          <td>
+            {% if cat.pending > 0 %}
+            <span class="badge pending">● Pending</span>
+            {% else %}
+            <span class="badge resolved">✓ Clear</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+
+    <!-- Recent Users -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="section-title">Recent Users</div>
+      </div>
+      <div class="stat-mini-grid">
+        <div class="stat-mini">
+          <div class="stat-mini-val">{{ total_users }}</div>
+          <div class="stat-mini-label">Total</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-val">{{ new_users }}</div>
+          <div class="stat-mini-label">This Week</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-val">{{ staff_count }}</div>
+          <div class="stat-mini-label">Staff</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        {% for u in recent_users %}
+        <div class="user-row">
+          <div class="user-av c{{ forloop.counter0|divisibleby:5|yesno:'0,1,2,3,4'}}">
+            {{ u.username|slice:":2"|upper }}
+          </div>
+          <div class="user-details">
+            <div class="user-n">{{ u.username }}</div>
+            <div class="user-d">Joined {{ u.date_joined|date:"M d, Y" }}</div>
+          </div>
+          {% if u.userprofile.role == 'admin' %}
+          <span class="role-tag admin">Admin</span>
+          {% elif u.userprofile.role == 'staff' %}
+          <span class="role-tag staff">Staff</span>
+          {% else %}
+          <span class="role-tag regular">User</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div style="padding:20px;text-align:center;color:var(--muted2);font-size:12px;">No users yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent Feedback -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="section-title">Staff Feedback</div>
+      </div>
+      <div class="panel-body">
+        <!-- User role distribution donut -->
+        <div class="donut-row">
+          <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+            {% comment %}
+            Static decorative donut — replace with real data via JS if needed
+            {% endcomment %}
+            <circle cx="55" cy="55" r="40" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="16"/>
+            <!-- Admins -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#b794f4" stroke-width="16"
+              stroke-dasharray="25.13 226.19" stroke-dashoffset="0"/>
+            <!-- Staff -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#63b3ed" stroke-width="16"
+              stroke-dasharray="75.40 226.19" stroke-dashoffset="-25.13"/>
+            <!-- Regular -->
+            <circle cx="55" cy="55" r="40" fill="none" stroke="#4a5568" stroke-width="16"
+              stroke-dasharray="125.66 226.19" stroke-dashoffset="-100.53"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--accent5)"></div>
+              Admins
+              <span class="legend-val">{{ admin_count }}</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--accent)"></div>
+              Staff
+              <span class="legend-val">{{ staff_count }}</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--muted)"></div>
+              Regular
+              <span class="legend-val">{{ regular_count }}</span>
+            </div>
+          </div>
+        </div>
+
+        {% for fb in recent_feedback %}
+        <div class="fb-row">
+          <div class="fb-top">
+            <span class="fb-staff">{{ fb.staff.username }}</span>
+            <span class="fb-time">{{ fb.created_at|timesince }} ago</span>
+          </div>
+          <div class="fb-text">{{ fb.message|default:"No message content." }}</div>
+        </div>
+        {% empty %}
+        <div style="padding:20px;text-align:center;color:var(--muted2);font-size:12px;">No feedback yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /bottom-grid -->
+
+</main>
+
+<script>
+  // Live clock
+  function updateTime() {
+    const now = new Date();
+    const t = now.toLocaleTimeString('en-US', { hour12: false });
+    const el = document.querySelector('.time-badge');
+    if (el) el.innerHTML = `<span class="status-dot"></span>${t}`;
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  // Animate bar fills on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0';
+      setTimeout(() => bar.style.width = w, 300);
+    });
+  });
+</script>
+</body>
+</html>

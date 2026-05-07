@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Simple styling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Verify OTP</h2>
+    <p>Enter the code sent to your email or phone</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <input type="text" name="otp_code" placeholder="Enter OTP" maxlength="6" required>
+
+        <button type="submit">Verify</button>
+    </form>
+
+    <!-- Django Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'resend_otp' %}">
+    {% csrf_token %}
+    <button type="submit" style="background: gray;">Resend OTP</button>
+</form>
+</div>
+
+</body>
+</html>

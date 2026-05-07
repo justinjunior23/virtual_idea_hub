@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Post Reporting — Virtual Idea Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+    .reporting-page { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem; animation: fadeUp 0.4s ease both; }
+    .panel-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #27ae60; background: #eafaf1; padding: 0.3rem 0.75rem; border-radius: 999px; margin-bottom: 0.85rem; }
+    .panel-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.5rem; }
+    .panel-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; }
+    .alert { padding: 0.85rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.6rem; }
+    .alert-success { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+    .alert-error   { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+    .report-form { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.05); }
+    .form-section-label { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #27ae60; margin: 1.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+    .form-section-label:first-child { margin-top: 0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.45rem; }
+    .form-control { width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; resize: vertical; }
+    .form-control:focus { border-color: #27ae60; box-shadow: 0 0 0 3px rgba(39,174,96,0.1); background: #fff; }
+    .form-control::placeholder { color: #b0aca3; }
+    textarea.form-control { min-height: 120px; line-height: 1.6; }
+    .btn-submit { width: 100%; padding: 0.85rem; background: #27ae60; color: #fff; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; }
+    .btn-submit:hover { background: #1e8449; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(39,174,96,0.3); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .form-group.full { grid-column: 1; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reporting-page">
+    <div class="panel-eyebrow"><i class="fas fa-chart-line"></i> Reporting</div>
+    <h1 class="panel-title">Submit a Report</h1>
+    <p class="panel-desc">Fill in the form below with accurate details. Your report will be reviewed by the management team.</p>
+
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+
+    <div class="report-form">
+        <form method="POST" action="{% url 'post_reporting' %}">
+            {% csrf_token %}
+
+            <div class="form-section-label">Report Details</div>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Report Name <span style="color:#e53e3e">*</span></label>
+                    <input type="text" name="report_name" class="form-control" placeholder="e.g. Infrastructure Damage Report" required>
+                </div>
+                <div class="form-group full">
+                    <label>Location <span style="color:#e53e3e">*</span></label>
+                    <input type="text" name="location" class="form-control" placeholder="Where did this occur?" required>
+                </div>
+                <div class="form-group full">
+                    <label>Report Description <span style="color:#e53e3e">*</span></label>
+                    <textarea name="report_description" class="form-control" placeholder="Describe the issue in full detail…" required></textarea>
+                </div>
+            </div>
+
+            <div class="form-section-label">Reporter Information</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name <span style="color:#e53e3e">*</span></label>
+                    <input type="text" name="first_name" class="form-control" placeholder="First name" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span style="color:#e53e3e">*</span></label>
+                    <input type="text" name="last_name" class="form-control" placeholder="Last name" required>
+                </div>
+                <div class="form-group">
+                    <label>Registration Number</label>
+                    <input type="text" name="registration_number" class="form-control" placeholder="e.g. STU-2024-001">
+                </div>
+                <div class="form-group">
+                    <label>Telephone <span style="color:#e53e3e">*</span></label>
+                    <input type="text" name="telephone" class="form-control" placeholder="+250 7XX XXX XXX" required>
+                </div>
+                <div class="form-group">
+                    <label>Email <span style="color:#e53e3e">*</span></label>
+                    <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" name="department" class="form-control" placeholder="Your department">
+                </div>
+                <div class="form-group full">
+                    <label>School / Institution</label>
+                    <input type="text" name="school" class="form-control" placeholder="Your school or institution">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Submit Report
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
