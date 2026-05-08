@@ -1387,3 +1387,369 @@ def delete_reporting(request, pk):
 def reporting_detail(request, pk):
     report = get_object_or_404(Reporting, pk=pk, user=request.user)
     return render(request, 'reporting/detail.html', {'report': report, 'category': 'Reporting'})
+
+
+@login_required
+def analytics_partial(request):
+    # Manual role check — avoids redirect on AJAX
+    try:
+        if request.user.userprofile.role != 'admin':
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('Forbidden')
+    except Exception:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('Forbidden')
+
+    return render(request, 'admin/partials/analytics.html', {
+        'total_users': User.objects.count(),
+        'total_posts': (
+            PostAwareness.objects.count() +
+            PostInnovation.objects.count() +
+            PostSuggestions.objects.count() +
+            PostEmergency.objects.count() +
+            PostRecommendations.objects.count() +
+            PostComplain.objects.count() +
+            PostOthers.objects.count() +
+            Reporting.objects.count()
+        ),
+        'total_pending': (
+            PostAwareness.objects.filter(status='pending').count() +
+            PostInnovation.objects.filter(status='pending').count() +
+            PostSuggestions.objects.filter(status='pending').count() +
+            PostEmergency.objects.filter(status='pending').count() +
+            PostRecommendations.objects.filter(status='pending').count() +
+            PostComplain.objects.filter(status='pending').count() +
+            PostOthers.objects.filter(status='pending').count() +
+            Reporting.objects.filter(status='pending').count()
+        ),
+    })
+
+
+    # ─────────────────────────────────────────────────────────────────────────────
+# ADD THESE VIEWS TO YOUR views.py  (paste after analytics_partial)
+# ─────────────────────────────────────────────────────────────────────────────
+
+from django.db.models import Count
+
+
+def _admin_partial_check(request):
+    """Returns None if OK, HttpResponseForbidden otherwise."""
+    try:
+        if request.user.userprofile.role != 'admin':
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('Forbidden')
+    except Exception:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('Forbidden')
+    return None
+
+
+def _base_admin_ctx():
+    """Shared context passed to most admin partials."""
+    now      = timezone.now()
+    week_ago = now - timedelta(days=7)
+
+    category_stats = [
+        {'label': 'Awareness',       'slug': 'awareness',      'total': PostAwareness.objects.count(),       'pending': PostAwareness.objects.filter(status='pending').count(),       'resolved': PostAwareness.objects.filter(status='resolved').count(),       'this_week': PostAwareness.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Innovation',      'slug': 'innovation',     'total': PostInnovation.objects.count(),      'pending': PostInnovation.objects.filter(status='pending').count(),      'resolved': PostInnovation.objects.filter(status='resolved').count(),      'this_week': PostInnovation.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Suggestions',     'slug': 'suggestion',     'total': PostSuggestions.objects.count(),     'pending': PostSuggestions.objects.filter(status='pending').count(),     'resolved': PostSuggestions.objects.filter(status='resolved').count(),     'this_week': PostSuggestions.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Emergency',       'slug': 'emergency',      'total': PostEmergency.objects.count(),       'pending': PostEmergency.objects.filter(status='pending').count(),       'resolved': PostEmergency.objects.filter(status='resolved').count(),       'this_week': PostEmergency.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Recommendations', 'slug': 'recommendation', 'total': PostRecommendations.objects.count(), 'pending': PostRecommendations.objects.filter(status='pending').count(), 'resolved': PostRecommendations.objects.filter(status='resolved').count(), 'this_week': PostRecommendations.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Complaints',      'slug': 'complaint',      'total': PostComplain.objects.count(),        'pending': PostComplain.objects.filter(status='pending').count(),        'resolved': PostComplain.objects.filter(status='resolved').count(),        'this_week': PostComplain.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Others',          'slug': 'others',         'total': PostOthers.objects.count(),          'pending': PostOthers.objects.filter(status='pending').count(),          'resolved': PostOthers.objects.filter(status='resolved').count(),          'this_week': PostOthers.objects.filter(created_at__gte=week_ago).count()},
+        {'label': 'Reporting',       'slug': 'reporting',      'total': Reporting.objects.count(),           'pending': Reporting.objects.filter(status='pending').count(),           'resolved': Reporting.objects.filter(status='resolved').count(),           'this_week': Reporting.objects.filter(created_at__gte=week_ago).count()},
+    ]
+    total_posts    = sum(c['total']     for c in category_stats)
+    total_pending  = sum(c['pending']   for c in category_stats)
+    total_resolved = sum(c['resolved']  for c in category_stats)
+    total_new      = sum(c['this_week'] for c in category_stats)
+    staff_count    = UserProfile.objects.filter(role='staff').count()
+    admin_count    = UserProfile.objects.filter(role='admin').count()
+    total_users    = User.objects.count()
+    return {
+        'category_stats':  category_stats,
+        'total_posts':     total_posts,
+        'total_pending':   total_pending,
+        'total_resolved':  total_resolved,
+        'total_new':       total_new,
+        'staff_count':     staff_count,
+        'admin_count':     admin_count,
+        'total_users':     total_users,
+    }
+
+
+# ── NOTIFICATIONS ──────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def notifications_partial(request):
+    ctx = _base_admin_ctx()
+    # Derive simple notification counts from real data
+    ctx['unread_count']    = ctx['total_pending']
+    ctx['emergency_count'] = PostEmergency.objects.filter(status='pending').count()
+    ctx['resolved_today']  = StaffFeedback.objects.filter(
+        created_at__date=timezone.now().date()
+    ).count()
+    ctx['total_notifications'] = ctx['total_pending'] + ctx['resolved_today']
+    ctx['notifications'] = []  # Real notification model not yet defined; template shows demo
+    return render(request, 'admin/partials/notifications.html', ctx)
+
+
+# ── ACTIVITY TIMELINE ──────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def activity_partial(request):
+    now = timezone.now()
+    ctx = _base_admin_ctx()
+    ctx['events_today']    = StaffFeedback.objects.filter(created_at__date=now.date()).count()
+    ctx['resolved_today']  = StaffFeedback.objects.filter(created_at__date=now.date(), new_status='resolved').count()
+    ctx['new_users_today'] = User.objects.filter(date_joined__date=now.date()).count()
+    ctx['staff_actions']   = StaffFeedback.objects.filter(created_at__date=now.date()).count()
+    ctx['activity_log']    = []  # Template shows demo data; plug in a real ActivityLog model later
+    return render(request, 'admin/partials/activity.html', ctx)
+
+
+# ── ALL SUBMISSIONS ────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def all_submissions_partial(request):
+    return render(request, 'admin/partials/all-submissions.html', _base_admin_ctx())
+
+
+# ── CATEGORY PARTIALS (innovations / suggestions / complaints / emergencies / awareness / anonymous) ──
+def _cat_partial(request, slug, label, icon, desc):
+    err = _admin_partial_check(request)
+    if err: return err
+    if slug not in CATEGORY_MAP:
+        from django.http import Http404
+        raise Http404
+    Model, _ = CATEGORY_MAP[slug]
+    posts = Model.objects.order_by('-created_at').select_related('user')[:50]
+    ctx   = _base_admin_ctx()
+    ctx.update({
+        'posts':          posts,
+        'category_slug':  slug,
+        'category_label': label,
+        'category_icon':  icon,
+        'category_desc':  desc,
+        'cat_total':      Model.objects.count(),
+        'cat_pending':    Model.objects.filter(status='pending').count(),
+        'cat_resolved':   Model.objects.filter(status='resolved').count(),
+        'cat_this_week':  Model.objects.filter(created_at__gte=timezone.now()-timedelta(days=7)).count(),
+    })
+    return render(request, 'admin/partials/category_detail.html', ctx)
+
+
+@login_required
+def innovations_partial(request):
+    return _cat_partial(request, 'innovation', 'Innovations', '💡', 'Innovation ideas submitted by users')
+
+@login_required
+def suggestions_partial(request):
+    return _cat_partial(request, 'suggestion', 'Suggestions', '✦', 'User suggestions awaiting review')
+
+@login_required
+def complaints_partial(request):
+    return _cat_partial(request, 'complaint', 'Complaints', '⚑', 'Filed complaints and their status')
+
+@login_required
+def emergencies_partial(request):
+    return _cat_partial(request, 'emergency', 'Emergencies', '⚠', 'High-priority emergency submissions')
+
+@login_required
+def awareness_partial(request):
+    return _cat_partial(request, 'awareness', 'Awareness', '◎', 'Awareness posts and campaigns')
+
+@login_required
+def anonymous_partial(request):
+    err = _admin_partial_check(request)
+    if err: return err
+    # Gather anonymous posts across all categories
+    anon_posts = []
+    for slug, (Model, label) in CATEGORY_MAP.items():
+        qs = Model.objects.filter(is_anonymous=True).order_by('-created_at')[:10]
+        for p in qs:
+            p.category_slug  = slug
+            p.category_label = label
+            anon_posts.append(p)
+    anon_posts.sort(key=lambda x: x.created_at, reverse=True)
+    ctx = _base_admin_ctx()
+    ctx['anon_posts']         = anon_posts[:40]
+    ctx['category_slug']      = 'anonymous'
+    ctx['category_label']     = 'Anonymous'
+    ctx['category_icon']      = '◌'
+    ctx['category_desc']      = 'Anonymous submissions from all categories'
+    ctx['posts']              = anon_posts[:40]
+    ctx['cat_total']          = sum(
+        CATEGORY_MAP[s][0].objects.filter(is_anonymous=True).count() for s in CATEGORY_MAP
+    )
+    ctx['cat_pending']        = 0
+    ctx['cat_resolved']       = 0
+    ctx['cat_this_week']      = 0
+    return render(request, 'admin/partials/category_detail.html', ctx)
+
+
+# ── WORKFLOW: PENDING / ASSIGNED / RESOLVED / ARCHIVED ────────────────────────
+def _workflow_partial(request, status_key, title, desc, color):
+    err = _admin_partial_check(request)
+    if err: return err
+    ctx = _base_admin_ctx()
+    # Build per-category count for this workflow status
+    STATUS_MAP = {
+        'pending':  'pending',
+        'assigned': 'in_review',
+        'resolved': 'resolved',
+        'archived': 'rejected',
+    }
+    db_status = STATUS_MAP.get(status_key, status_key)
+    category_workflow = []
+    total = 0
+    week_ago = timezone.now() - timedelta(days=7)
+    week = 0
+    for slug, (Model, label) in CATEGORY_MAP.items():
+        count = Model.objects.filter(status=db_status).count()
+        category_workflow.append({'slug': slug, 'label': label, 'count': count})
+        total += count
+        week  += Model.objects.filter(status=db_status, created_at__gte=week_ago).count()
+    ctx.update({
+        'workflow_title':    title,
+        'workflow_desc':     desc,
+        'workflow_status':   db_status,
+        'workflow_total':    total,
+        'workflow_week':     week,
+        'workflow_sub':      f'Across all categories',
+        'stat_color':        color,
+        'category_workflow': category_workflow,
+    })
+    return render(request, 'admin/partials/workflow.html', ctx)
+
+@login_required
+def pending_partial(request):
+    return _workflow_partial(request, 'pending', 'Pending Review', 'Submissions awaiting admin review', 'orange')
+
+@login_required
+def assigned_partial(request):
+    return _workflow_partial(request, 'assigned', 'Assigned (In Review)', 'Submissions currently being reviewed by staff', 'blue')
+
+@login_required
+def resolved_partial(request):
+    return _workflow_partial(request, 'resolved', 'Resolved', 'Successfully resolved submissions', 'green')
+
+@login_required
+def archived_partial(request):
+    return _workflow_partial(request, 'archived', 'Archived / Rejected', 'Archived and rejected records', 'red')
+
+
+# ── DEPARTMENTS ────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def departments_partial(request):
+    return render(request, 'admin/partials/departments.html', _base_admin_ctx())
+
+
+# ── PERFORMANCE ────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def performance_partial(request):
+    ctx = _base_admin_ctx()
+    # Staff leaderboard: count StaffFeedback by staff
+    ctx['staff_leaderboard'] = (
+        StaffFeedback.objects
+        .values('staff__username')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    return render(request, 'admin/partials/performance.html', ctx)
+
+
+# ── STAFF RESPONSES ────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def staff_responses_partial(request):
+    ctx = _base_admin_ctx()
+    ctx['recent_feedback']  = StaffFeedback.objects.select_related('staff').order_by('-created_at')[:50]
+    ctx['total_feedback']   = StaffFeedback.objects.count()
+    ctx['emails_sent']      = StaffFeedback.objects.filter(email_sent=True).count()
+    return render(request, 'admin/partials/staff-responses.html', ctx)
+
+
+# ── STAFF MANAGEMENT ──────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def staff_management_partial(request):
+    staff_users = User.objects.filter(userprofile__role__in=['staff', 'admin']).select_related('userprofile').order_by('-date_joined')
+    ctx = _base_admin_ctx()
+    ctx['staff_users']     = staff_users
+    ctx['staff_feedback']  = StaffFeedback.objects.select_related('staff').order_by('-created_at')[:20]
+    return render(request, 'admin/partials/staff-management.html', ctx)
+
+
+# ── ROLES & PERMISSIONS ───────────────────────────────────────────────────────
+@login_required
+@admin_required
+def roles_partial(request):
+    ctx = _base_admin_ctx()
+    ctx['regular_count'] = UserProfile.objects.filter(role='regular_user').count()
+    return render(request, 'admin/partials/roles.html', ctx)
+
+
+# ── EXPORT ────────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def export_partial(request):
+    return render(request, 'admin/partials/export.html', _base_admin_ctx())
+
+
+# ── MONTHLY REPORTS ───────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def monthly_partial(request):
+    ctx = _base_admin_ctx()
+    # Build last 6 months breakdown
+    import calendar
+    months = []
+    now = timezone.now()
+    for i in range(5, -1, -1):
+        d = now.replace(day=1) - timedelta(days=1) * (i * 30)
+        start = d.replace(day=1)
+        end   = (start + timedelta(days=32)).replace(day=1)
+        total = sum(
+            CATEGORY_MAP[s][0].objects.filter(created_at__gte=start, created_at__lt=end).count()
+            for s in CATEGORY_MAP
+        )
+        months.append({'label': start.strftime('%b %Y'), 'total': total})
+    ctx['months'] = months
+    return render(request, 'admin/partials/monthly.html', ctx)
+
+
+# ── AUDIT LOGS ────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def audit_partial(request):
+    ctx = _base_admin_ctx()
+    ctx['audit_entries'] = StaffFeedback.objects.select_related('staff').order_by('-created_at')[:100]
+    return render(request, 'admin/partials/audit.html', ctx)
+
+
+# ── SETTINGS ──────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def settings_partial(request):
+    return render(request, 'admin/partials/settings.html', _base_admin_ctx())
+
+
+# ── EMAIL TEMPLATES ───────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def email_templates_partial(request):
+    return render(request, 'admin/partials/email-templates.html', _base_admin_ctx())
+
+
+# ── SECURITY ──────────────────────────────────────────────────────────────────
+@login_required
+@admin_required
+def security_partial(request):
+    ctx = _base_admin_ctx()
+    ctx['recent_feedback']   = StaffFeedback.objects.select_related('staff').order_by('-created_at')[:10]
+    ctx['active_sessions']   = 1  # Replace with real session count if using django-session
+    ctx['failed_logins']     = 0
+    return render(request, 'admin/partials/security.html', ctx)

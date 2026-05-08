@@ -1,0 +1,90 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<div class="topbar">
+  <div>
+    <div class="page-title">Staff Responses</div>
+    <div class="page-sub">All feedback and responses submitted by staff members</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="sr-clock">—</span></div>
+  </div>
+</div>
+
+<div class="stat-row cols-3" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s">
+    <div class="stat-box-label">Total Responses</div>
+    <div class="stat-box-val">{{ total_feedback|default:"0" }}</div>
+    <div class="stat-box-sub">All time</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.1s">
+    <div class="stat-box-label">Emails Sent</div>
+    <div class="stat-box-val">{{ emails_sent|default:"0" }}</div>
+    <div class="stat-box-sub">Notified submitters</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.15s">
+    <div class="stat-box-label">Active Staff</div>
+    <div class="stat-box-val">{{ staff_count|default:"0" }}</div>
+    <div class="stat-box-sub">Reviewing submissions</div>
+  </div>
+</div>
+
+<div class="filter-bar" style="margin-bottom:16px;">
+  <input class="filter-input" id="sr-search" type="text" placeholder="Search feedback…" style="flex:1;max-width:320px;">
+  <select class="filter-select" id="sr-status" onchange="srFilter()">
+    <option value="">All Status</option>
+    <option value="pending">Pending</option>
+    <option value="in_review">In Review</option>
+    <option value="resolved">Resolved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+</div>
+
+<div class="p-card" style="animation-delay:.2s;">
+  <div class="p-card-head">
+    <div class="section-title">Feedback Log</div>
+    <div class="section-count">{{ recent_feedback|length }} entries</div>
+  </div>
+  <div id="sr-list">
+    {% for fb in recent_feedback %}
+    <div class="sub-row" data-status="{{ fb.new_status }}">
+      <div class="sub-icon" style="background:rgba(99,179,237,.1);color:var(--accent);">💬</div>
+      <div class="sub-info">
+        <div class="sub-title">{{ fb.message|truncatechars:80|default:"No message" }}</div>
+        <div class="sub-meta">
+          <strong>{{ fb.staff.username }}</strong> · {{ fb.category }} #{{ fb.post_id }} · {{ fb.created_at|timesince }} ago
+          {% if fb.email_sent %} · <span style="color:var(--accent3);">✉ Email sent</span>{% endif %}
+        </div>
+      </div>
+      <div class="sub-right">
+        {% if fb.new_status == 'resolved' %}<span class="badge resolved">Resolved</span>
+        {% elif fb.new_status == 'in_review' %}<span class="badge review">In Review</span>
+        {% elif fb.new_status == 'rejected' %}<span class="badge rejected">Rejected</span>
+        {% else %}<span class="badge pending">Pending</span>{% endif %}
+        <span style="font-size:10px;color:var(--muted);">{{ fb.created_at|date:"M d" }}</span>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-title">No Responses Yet</div>
+      <div class="empty-desc">Staff feedback will appear here once staff members begin reviewing submissions.</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+(function(){
+  document.getElementById('sr-clock').textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+  const si=document.getElementById('sr-search'), ss=document.getElementById('sr-status');
+  function srFilter(){
+    const q=(si?.value||'').toLowerCase(), s=ss?.value||'';
+    document.querySelectorAll('#sr-list .sub-row').forEach(r=>{
+      r.style.display=((!q||r.textContent.toLowerCase().includes(q))&&(!s||r.dataset.status===s))?'':'none';
+    });
+  }
+  si?.addEventListener('input',srFilter);
+  window.srFilter=srFilter;
+})();
+</script>

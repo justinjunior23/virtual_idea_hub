@@ -1,0 +1,81 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<div class="topbar">
+  <div>
+    <div class="page-title">{{ workflow_title }}</div>
+    <div class="page-sub">{{ workflow_desc }}</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="wf-clock">—</span></div>
+  </div>
+</div>
+
+<div class="stat-row cols-3" style="margin-bottom:28px;">
+  <div class="stat-box {{ stat_color|default:'orange' }}" style="animation-delay:.05s">
+    <div class="stat-box-label">{{ workflow_title }}</div>
+    <div class="stat-box-val">{{ workflow_total|default:"0" }}</div>
+    <div class="stat-box-sub">{{ workflow_sub|default:"Across all categories" }}</div>
+  </div>
+  <div class="stat-box blue" style="animation-delay:.1s">
+    <div class="stat-box-label">This Week</div>
+    <div class="stat-box-val">{{ workflow_week|default:"0" }}</div>
+    <div class="stat-box-sub">New this week</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.15s">
+    <div class="stat-box-label">Categories</div>
+    <div class="stat-box-val">8</div>
+    <div class="stat-box-sub">Post types tracked</div>
+  </div>
+</div>
+
+<!-- Per-category breakdown for this workflow status -->
+<div class="section-header">
+  <div class="section-title">By Category</div>
+</div>
+
+<div class="p-table-wrap" style="animation-delay:.2s;">
+  <table class="p-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Count</th>
+        <th>% of Total</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in category_workflow %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:{% if cat.slug == 'awareness' %}#63b3ed{% elif cat.slug == 'innovation' %}#b794f4{% elif cat.slug == 'suggestion' %}#68d391{% elif cat.slug == 'emergency' %}#fc8181{% elif cat.slug == 'recommendation' %}#f6ad55{% elif cat.slug == 'complaint' %}#fc8181{% elif cat.slug == 'reporting' %}#63b3ed{% else %}#4a5568{% endif %};"></div>
+            <span style="font-family:'Syne',sans-serif;font-weight:600;">{{ cat.label }}</span>
+          </div>
+        </td>
+        <td><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text);">{{ cat.count }}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
+              <div style="height:100%;border-radius:2px;background:var(--accent);width:{% if workflow_total > 0 %}{% widthratio cat.count workflow_total 100 %}%{% else %}0%{% endif %};"></div>
+            </div>
+            <span style="font-size:10px;color:var(--muted2);">{% if workflow_total > 0 %}{% widthratio cat.count workflow_total 100 %}%{% else %}0%{% endif %}</span>
+          </div>
+        </td>
+        <td>
+          <a href="/staff/{{ cat.slug }}/?status={{ workflow_status }}" style="font-size:10px;color:var(--accent);text-decoration:none;border:1px solid rgba(99,179,237,.2);padding:3px 10px;border-radius:6px;">View →</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted2);font-size:12px;">No {{ workflow_title|lower }} submissions</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('wf-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+})();
+</script>

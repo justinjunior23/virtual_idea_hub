@@ -1,0 +1,101 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<div class="topbar">
+  <div>
+    <div class="page-title">Departments</div>
+    <div class="page-sub">Department overview, submission routing and statistics</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="dept-clock">—</span></div>
+  </div>
+</div>
+
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s">
+    <div class="stat-box-label">Departments</div>
+    <div class="stat-box-val">8</div>
+    <div class="stat-box-sub">Post categories</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.1s">
+    <div class="stat-box-label">Staff Members</div>
+    <div class="stat-box-val">{{ staff_count|default:"0" }}</div>
+    <div class="stat-box-sub">Active reviewers</div>
+  </div>
+  <div class="stat-box orange" style="animation-delay:.15s">
+    <div class="stat-box-label">Open Items</div>
+    <div class="stat-box-val">{{ total_pending|default:"0" }}</div>
+    <div class="stat-box-sub">Pending review</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.2s">
+    <div class="stat-box-label">Avg Resolution</div>
+    <div class="stat-box-val">3d</div>
+    <div class="stat-box-sub">Average time</div>
+  </div>
+</div>
+
+<!-- Department Cards Grid -->
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;animation:fadeUp .4s ease .2s both;">
+
+  {% for cat in category_stats %}
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='rgba(99,179,237,.3)'" onmouseout="this.style.borderColor='rgba(99,179,237,.12)'">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:{% if cat.slug == 'awareness' %}rgba(99,179,237,.12){% elif cat.slug == 'innovation' %}rgba(183,148,244,.12){% elif cat.slug == 'suggestion' %}rgba(104,211,145,.12){% elif cat.slug == 'emergency' %}rgba(252,129,129,.15){% elif cat.slug == 'recommendation' %}rgba(246,173,85,.12){% elif cat.slug == 'complaint' %}rgba(252,129,129,.12){% elif cat.slug == 'reporting' %}rgba(99,179,237,.1){% else %}rgba(74,85,104,.2){% endif %};display:flex;align-items:center;justify-content:center;font-size:18px;">{% if cat.slug == 'awareness' %}◎{% elif cat.slug == 'innovation' %}💡{% elif cat.slug == 'suggestion' %}✦{% elif cat.slug == 'emergency' %}⚠{% elif cat.slug == 'recommendation' %}⭐{% elif cat.slug == 'complaint' %}⚑{% elif cat.slug == 'reporting' %}📋{% else %}◈{% endif %}</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);">{{ cat.label }}</div>
+          <div style="font-size:10px;color:var(--muted2);">{{ cat.total }} total submissions</div>
+        </div>
+      </div>
+      {% if cat.pending > 0 %}
+      <span class="badge pending">{{ cat.pending }} pending</span>
+      {% else %}
+      <span class="badge resolved">✓ Clear</span>
+      {% endif %}
+    </div>
+
+    <!-- Mini stats row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text);">{{ cat.pending }}</div>
+        <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Pending</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--accent3);">{{ cat.resolved }}</div>
+        <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Resolved</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--accent);">{{ cat.this_week }}</div>
+        <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">This Week</div>
+      </div>
+    </div>
+
+    <!-- Resolution bar -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent3),var(--accent));width:{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %};transition:width 1s ease;"></div>
+      </div>
+      <span style="font-size:10px;color:var(--muted2);width:36px;text-align:right;">{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %}</span>
+    </div>
+
+    <div style="margin-top:12px;">
+      <a href="/staff/{{ cat.slug }}/" style="font-size:11px;color:var(--accent);text-decoration:none;">View all {{ cat.label }} →</a>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:span 2;">
+    <div class="empty-state">
+      <div class="empty-icon">🏢</div>
+      <div class="empty-title">No Department Data</div>
+      <div class="empty-desc">Category statistics will appear once submissions exist.</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('dept-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+})();
+</script>

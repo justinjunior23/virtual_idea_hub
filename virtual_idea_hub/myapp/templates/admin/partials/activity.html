@@ -1,0 +1,201 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<style>
+.timeline { position:relative; padding-left:32px; }
+.timeline::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:1px; background:linear-gradient(to bottom, var(--accent), rgba(99,179,237,.1)); }
+
+.tl-item { position:relative; padding:0 0 28px 28px; animation:fadeUp .4s ease both; }
+.tl-item:last-child { padding-bottom:0; }
+
+.tl-dot { position:absolute; left:-21px; top:3px; width:12px; height:12px; border-radius:50%; border:2px solid var(--bg); flex-shrink:0; }
+.tl-dot.blue   { background:var(--accent);  box-shadow:0 0 8px rgba(99,179,237,.5); }
+.tl-dot.green  { background:var(--accent3); box-shadow:0 0 8px rgba(104,211,145,.5); }
+.tl-dot.orange { background:var(--accent2); box-shadow:0 0 8px rgba(246,173,85,.5); }
+.tl-dot.red    { background:var(--accent4); box-shadow:0 0 8px rgba(252,129,129,.5); }
+.tl-dot.purple { background:var(--accent5); box-shadow:0 0 8px rgba(183,148,244,.5); }
+.tl-dot.muted  { background:var(--muted); }
+
+.tl-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; transition:border-color .2s; }
+.tl-card:hover { border-color:rgba(99,179,237,.25); }
+
+.tl-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:10px; }
+.tl-actor { font-size:12px; color:var(--text); font-weight:500; }
+.tl-time  { font-size:10px; color:var(--muted); white-space:nowrap; }
+.tl-action{ font-size:11px; color:var(--muted2); line-height:1.5; }
+.tl-action strong { color:var(--text); }
+.tl-tags  { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+
+.day-divider { display:flex; align-items:center; gap:12px; margin:4px 0 20px; padding-left:0; }
+.day-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+.day-line  { flex:1; height:1px; background:var(--border); }
+
+.activity-filters { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.af-btn { font-size:11px; font-family:'DM Mono',monospace; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted2); cursor:pointer; transition:all .2s; }
+.af-btn:hover, .af-btn.active { background:rgba(99,179,237,.1); border-color:rgba(99,179,237,.3); color:var(--accent); }
+</style>
+
+<div class="topbar">
+  <div>
+    <div class="page-title">Activity Timeline</div>
+    <div class="page-sub">Chronological log of all system events and actions</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="act-clock">—</span></div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s">
+    <div class="stat-box-label">Events Today</div>
+    <div class="stat-box-val">{{ events_today|default:"18" }}</div>
+    <div class="stat-box-sub">Since midnight</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.1s">
+    <div class="stat-box-label">Resolved</div>
+    <div class="stat-box-val">{{ resolved_today|default:"7" }}</div>
+    <div class="stat-box-sub">Submissions closed</div>
+  </div>
+  <div class="stat-box orange" style="animation-delay:.15s">
+    <div class="stat-box-label">New Users</div>
+    <div class="stat-box-val">{{ new_users_today|default:"3" }}</div>
+    <div class="stat-box-sub">Registered today</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.2s">
+    <div class="stat-box-label">Staff Actions</div>
+    <div class="stat-box-val">{{ staff_actions|default:"11" }}</div>
+    <div class="stat-box-sub">Reviews & feedback</div>
+  </div>
+</div>
+
+<!-- Filter Buttons -->
+<div class="activity-filters">
+  <button class="af-btn active" data-filter="all">All Activity</button>
+  <button class="af-btn" data-filter="submission">Submissions</button>
+  <button class="af-btn" data-filter="user">Users</button>
+  <button class="af-btn" data-filter="staff">Staff</button>
+  <button class="af-btn" data-filter="system">System</button>
+</div>
+
+<!-- Timeline -->
+<div class="p-card" style="animation-delay:.25s;">
+  <div class="p-card-head">
+    <div class="section-title">Event Log</div>
+    <div class="section-count" id="event-count">Showing all events</div>
+  </div>
+  <div class="p-card-body">
+    <div class="timeline" id="timeline-wrap">
+
+      <div class="day-divider"><div class="day-label">Today</div><div class="day-line"></div></div>
+
+      {% for event in activity_log %}
+      <div class="tl-item" data-type="{{ event.type }}">
+        <div class="tl-dot {{ event.color|default:'blue' }}"></div>
+        <div class="tl-card">
+          <div class="tl-head">
+            <span class="tl-actor">{{ event.actor }}</span>
+            <span class="tl-time">{{ event.created_at|timesince }} ago</span>
+          </div>
+          <div class="tl-action">{{ event.description|safe }}</div>
+          {% if event.tags %}<div class="tl-tags">{% for tag in event.tags %}<span class="badge review">{{ tag }}</span>{% endfor %}</div>{% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <!-- Demo timeline events -->
+      <div class="tl-item" data-type="submission">
+        <div class="tl-dot red"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">Anonymous User</span><span class="tl-time">4 min ago</span></div>
+          <div class="tl-action">Submitted a new <strong>Emergency</strong> report — <em>"Water pipe burst in Block C"</em></div>
+          <div class="tl-tags"><span class="badge emergency">Emergency</span><span class="badge pending">Pending</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="staff">
+        <div class="tl-dot green"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">alice_staff</span><span class="tl-time">18 min ago</span></div>
+          <div class="tl-action">Resolved complaint <strong>#032</strong> and sent feedback email to submitter</div>
+          <div class="tl-tags"><span class="badge resolved">Resolved</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="user">
+        <div class="tl-dot blue"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">System</span><span class="tl-time">42 min ago</span></div>
+          <div class="tl-action">New account registered: <strong>mike_johnson</strong> — awaiting OTP verification</div>
+          <div class="tl-tags"><span class="badge review">New User</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="submission">
+        <div class="tl-dot purple"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">sarah_92</span><span class="tl-time">1 hour ago</span></div>
+          <div class="tl-action">Submitted a new <strong>Innovation</strong> idea — <em>"Solar panel installation proposal"</em></div>
+          <div class="tl-tags"><span class="badge review">Innovation</span><span class="badge pending">Pending</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="staff">
+        <div class="tl-dot orange"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">bob_staff</span><span class="tl-time">2 hours ago</span></div>
+          <div class="tl-action">Changed status of suggestion <strong>#017</strong> from <em>Pending</em> to <strong>In Review</strong></div>
+          <div class="tl-tags"><span class="badge review">In Review</span></div>
+        </div>
+      </div>
+
+      <div class="day-divider" style="margin-top:8px;"><div class="day-label">Yesterday</div><div class="day-line"></div></div>
+
+      <div class="tl-item" data-type="system">
+        <div class="tl-dot muted"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">System</span><span class="tl-time">1 day ago</span></div>
+          <div class="tl-action">Weekly digest report generated and archived — <strong>23 total submissions</strong> this week</div>
+          <div class="tl-tags"><span class="badge review">System</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="user">
+        <div class="tl-dot blue"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">Admin</span><span class="tl-time">1 day ago</span></div>
+          <div class="tl-action">Role updated: <strong>carol_t</strong> promoted from Regular User to Staff</div>
+          <div class="tl-tags"><span class="badge review">Role Change</span></div>
+        </div>
+      </div>
+      <div class="tl-item" data-type="submission">
+        <div class="tl-dot green"></div>
+        <div class="tl-card">
+          <div class="tl-head"><span class="tl-actor">dave_k</span><span class="tl-time">1 day ago</span></div>
+          <div class="tl-action">Submitted an <strong>Awareness</strong> post — <em>"Fire drill scheduled for Friday"</em></div>
+          <div class="tl-tags"><span class="badge resolved">Awareness</span></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('act-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+
+  // Filter buttons
+  document.querySelectorAll('.af-btn[data-filter]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      const items = document.querySelectorAll('.tl-item[data-type]');
+      let shown = 0;
+      items.forEach(item=>{
+        const show = f === 'all' || item.dataset.type === f;
+        item.style.display = show ? '' : 'none';
+        if(show) shown++;
+      });
+      const ec = document.getElementById('event-count');
+      if(ec) ec.textContent = f==='all' ? 'Showing all events' : `${shown} ${f} event${shown!==1?'s':''}`;
+    });
+  });
+})();
+</script>
