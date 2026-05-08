@@ -21,24 +21,27 @@ urlpatterns = [
     path('resend-otp/', views.resend_otp, name='resend_otp'),
     path('login/', views.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('login-redirect/', views.login_redirect, name='login_redirect'),
 
     # ── Dashboards ────────────────────────────────────────────────
     path('user_dashboard/', views.user_dashboard, name='user_dashboard'),
-    path('staff/', views.staff_dashboard, name='staff_dashboard'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-
-    # ── Staff ────────────────────────────────────────────────────
-    path('staff/<slug:category_slug>/', views.staff_category_list, name='staff_category_list'),
-    path('staff/<slug:category_slug>/<int:pk>/', views.staff_post_detail, name='staff_post_detail'),
-    path('staff/<slug:category_slug>/bulk-update/', views.staff_bulk_update, name='staff_bulk_update'),
 
     # ── Admin User Management ─────────────────────────────────────
     path('admin-dashboard/users/', views.admin_user_list, name='admin_user_list'),
-    path('admin-dashboard/users/create/', views.admin_user_create, name='admin_user_create'),  # ✅ fixed
+    path('admin-dashboard/users/create/', views.admin_user_create, name='admin_user_create'),
     path('admin-dashboard/users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
     path('admin-dashboard/users/<int:user_id>/toggle-active/', views.admin_toggle_user_active, name='admin_toggle_user_active'),
     path('admin-dashboard/users/<int:user_id>/update-role/', views.update_user_role, name='update_user_role'),
     path('admin-dashboard/users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+
+    # ── Staff (specific routes FIRST, generic slug LAST) ──────────
+    path('staff/', views.staff_dashboard, name='staff_dashboard'),
+    path('staff/submission/<str:category_slug>/<int:pk>/detail/', views.submission_detail_ajax, name='submission_detail_ajax'),
+    path('staff/submission/<str:category_slug>/<int:pk>/update/', views.submission_update_ajax, name='submission_update_ajax'),
+    path('staff/<slug:category_slug>/bulk-update/', views.staff_bulk_update, name='staff_bulk_update'),
+    path('staff/<slug:category_slug>/<int:pk>/', views.staff_post_detail, name='staff_post_detail'),
+    path('staff/<slug:category_slug>/', views.staff_category_list, name='staff_category_list'),
 
     # ── Ideas ─────────────────────────────────────────────────────
     path('ideas/', views.idea_list, name='idea_list'),
@@ -99,7 +102,4 @@ urlpatterns = [
     path('reporting/<int:pk>/', views.reporting_detail, name='reporting_detail'),
     path('reporting/<int:pk>/edit/', views.edit_reporting, name='edit_reporting'),
     path('reporting/<int:pk>/delete/', views.delete_reporting, name='delete_reporting'),
-
-    # ── Redirect ─────────────────────────────────────────────────
-    path('login-redirect/', views.login_redirect, name='login_redirect'),
 ]

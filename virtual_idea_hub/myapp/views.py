@@ -26,6 +26,9 @@ from django.contrib import messages
 from django.db.models import Q
 from django.views.generic import RedirectView
 from django.views.decorators.http import require_POST
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 
 
 
@@ -109,14 +112,126 @@ def staff_dashboard(request):
             'total':     Model.objects.count(),
         }
 
+    # ── Gather recent submissions across ALL categories ──
+    recent_submissions = []
+    for slug, (Model, label) in CATEGORY_MAP.items():
+        qs = Model.objects.select_related('user').order_by('-created_at')[:5]
+        for sub in qs:
+            sub.category_slug  = slug
+            sub.category_label = label
+            # Normalize subject field (Reporting uses report_name, others use title)
+            if not hasattr(sub, 'title'):
+                sub.subject = getattr(sub, 'report_name', '—')
+            else:
+                sub.subject = sub.title or '—'
+            recent_submissions.append(sub)
+
+    recent_submissions.sort(key=lambda x: x.created_at, reverse=True)
+    recent_submissions = recent_submissions[:20]
+
     recent_feedback = StaffFeedback.objects.select_related('staff').order_by('-created_at')[:10]
 
     return render(request, 'staff/dashboard.html', {
-        'stats':           stats,
-        'recent_feedback': recent_feedback,
+        'stats':              stats,
+        'recent_feedback':    recent_feedback,
+        'recent_submissions': recent_submissions,
     })
 
 
+@login_required
+@staff_required
+def submission_detail_ajax(request, category_slug, pk):
+    """AJAX GET — returns JSON for the slide-in panel."""
+    if category_slug not in CATEGORY_MAP:
+        return JsonResponse({'error': 'Unknown category'}, status=404)
+
+    Model, label = CATEGORY_MAP[category_slug]
+    post = get_object_or_404(Model, pk=pk)
+
+    feedbacks = StaffFeedback.objects.filter(
+        category=category_slug, post_id=pk      # same field name as staff_post_detail
+    ).select_related('staff').order_by('created_at')
+
+    fb_data = [{
+        'staff_name':    fb.staff.get_full_name() or fb.staff.username,
+        'staff_initial': fb.staff.username[0].upper(),
+        'new_status':    fb.new_status,
+        'message':       fb.message,
+        'created_at':    fb.created_at.strftime('%b %d, %Y %H:%M'),
+    } for fb in feedbacks]
+
+    # Handle Reporting (different field names) vs all other categories
+    if category_slug == 'reporting':
+        subject      = getattr(post, 'report_name', '')
+        message      = getattr(post, 'report_description', '')
+        if post.user:
+            user_display = post.user.get_full_name() or post.user.username
+        else:
+            name = f"{getattr(post,'first_name','')} {getattr(post,'last_name','')}".strip()
+            user_display = name or 'Anonymous'
+    else:
+        subject      = getattr(post, 'title', '')
+        message      = getattr(post, 'content', '')
+        user_display = (
+            post.user.get_full_name() or post.user.username
+        ) if post.user else 'Anonymous'
+
+    return JsonResponse({
+        'id':             post.pk,
+        'category_label': label,
+        'category_slug':  category_slug,
+        'user_display':   user_display,
+        'status':         post.status,
+        'subject':        subject,
+        'message':        message,
+        'created_at':     post.created_at.strftime('%b %d, %Y %H:%M'),
+        'feedbacks':      fb_data,
+    })
+
+
+@login_required
+@staff_required
+@require_http_methods(['POST'])
+def submission_update_ajax(request, category_slug, pk):
+    """AJAX POST — update status and/or save feedback."""
+    if category_slug not in CATEGORY_MAP:
+        return JsonResponse({'ok': False, 'error': 'Unknown category'}, status=404)
+
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
+
+    new_status = body.get('status', '').strip()
+    message    = body.get('message', '').strip()
+
+    if not new_status and not message:
+        return JsonResponse({'ok': False, 'error': 'Nothing to update.'}, status=400)
+
+    Model, label = CATEGORY_MAP[category_slug]
+    post = get_object_or_404(Model, pk=pk)
+
+    if new_status in ('pending', 'in_review', 'resolved', 'rejected'):
+        post.status = new_status
+        post.save(update_fields=['status'])
+
+    email_sent = False
+    if message:
+        email_sent = _send_feedback_email(
+            request, post, category_slug,
+            message, new_status or post.status
+        )
+
+    StaffFeedback.objects.create(
+        staff      = request.user,
+        category   = category_slug,
+        post_id    = pk,                    # same field as staff_post_detail
+        message    = message or f'Status changed to {new_status}',
+        new_status = new_status or post.status,
+        email_sent = email_sent,
+    )
+
+    return JsonResponse({'ok': True})
 @login_required
 @staff_required
 def staff_category_list(request, category_slug):
@@ -164,10 +279,20 @@ def staff_category_list(request, category_slug):
 
 
 @login_required
-@staff_required
 def staff_post_detail(request, category_slug, pk):
     """View a single submission and submit feedback / change status."""
+    
+    # Temporary: manual role check with visible error
+    try:
+        role = request.user.userprofile.role
+        if role not in ('staff', 'admin'):
+            return redirect('user_dashboard')
+    except Exception as e:
+        print(f"ROLE CHECK ERROR: {e}")
+        return redirect('user_dashboard')
+
     if category_slug not in CATEGORY_MAP:
+        print(f"SLUG ERROR: '{category_slug}' not in {list(CATEGORY_MAP.keys())}")
         messages.error(request, "Unknown category.")
         return redirect('staff_dashboard')
 
@@ -183,41 +308,48 @@ def staff_post_detail(request, category_slug, pk):
         new_status       = request.POST.get('new_status', 'in_review')
         send_email_flag  = request.POST.get('send_email') == 'on'
 
+        print(f"POST received: message='{feedback_message}', status='{new_status}', email={send_email_flag}")
+
         if not feedback_message:
             messages.error(request, "Feedback message cannot be empty.")
         else:
-            post.status = new_status
-            post.save(update_fields=['status'])
+            try:
+                post.status = new_status
+                post.save(update_fields=['status'])
+                print("✅ post.save() OK")
 
-            email_sent = False
-            if send_email_flag:
-                email_sent = _send_feedback_email(
-                    request, post, category_slug, feedback_message, new_status
+                email_sent = False
+                if send_email_flag:
+                    email_sent = _send_feedback_email(
+                        request, post, category_slug, feedback_message, new_status
+                    )
+                print(f"✅ email_sent={email_sent}")
+
+                StaffFeedback.objects.create(
+                    staff      = request.user,
+                    category   = category_slug,
+                    post_id    = pk,
+                    message    = feedback_message,
+                    new_status = new_status,
+                    email_sent = email_sent,
                 )
+                print("✅ StaffFeedback.create() OK")
 
-            StaffFeedback.objects.create(
-                staff      = request.user,
-                category   = category_slug,
-                post_id    = pk,
-                message    = feedback_message,
-                new_status = new_status,
-                email_sent = email_sent,
-            )
+                if send_email_flag and not email_sent:
+                    messages.warning(request, "Feedback saved but email could not be sent.")
+                elif send_email_flag and email_sent:
+                    messages.success(request, "Feedback saved and email sent to submitter.")
+                else:
+                    messages.success(request, "Feedback saved (no email sent).")
 
-            if send_email_flag and not email_sent:
-                messages.warning(
-                    request,
-                    "Feedback saved but email could not be sent "
-                    "(no contact address available for this submission)."
-                )
-            elif send_email_flag and email_sent:
-                messages.success(request, "Feedback saved and email sent to submitter.")
-            else:
-                messages.success(request, "Feedback saved (no email sent).")
+                return redirect('staff_post_detail', category_slug=category_slug, pk=pk)
 
-            return redirect('staff_post_detail', category_slug=category_slug, pk=pk)
+            except Exception as e:
+                import traceback
+                print(f"❌ ERROR: {type(e).__name__}: {e}")
+                traceback.print_exc()
+                messages.error(request, f"Error: {e}")
 
-    # Auto-mark as in_review when staff first opens a pending submission
     if post.status == 'pending':
         post.status = 'in_review'
         post.save(update_fields=['status'])
@@ -237,7 +369,6 @@ def staff_post_detail(request, category_slug, pk):
         ],
     })
 
-
 @login_required
 @staff_required
 def staff_bulk_update(request, category_slug):
@@ -253,10 +384,6 @@ def staff_bulk_update(request, category_slug):
     messages.success(request, f"{updated} submission(s) marked as '{new_status}'.")
     return redirect('staff_category_list', category_slug=category_slug)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Admin views
-# ─────────────────────────────────────────────────────────────────────────────
 
 @login_required
 @admin_required

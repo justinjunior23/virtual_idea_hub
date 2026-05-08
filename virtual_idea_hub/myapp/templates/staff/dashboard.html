@@ -4,147 +4,120 @@
     <meta charset="UTF-8">
     <title>Staff Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue:      #1a73e8;
+            --blue-dk:   #1558b0;
+            --blue-lt:   #e8f0fe;
+            --yellow:    #f59e0b;
+            --teal:      #0891b2;
+            --green:     #16a34a;
+            --red:       #dc2626;
+            --surface:   #ffffff;
+            --bg:        #f1f5f9;
+            --border:    #e2e8f0;
+            --text:      #1e293b;
+            --muted:     #64748b;
+            --radius:    12px;
+            --shadow:    0 2px 12px rgba(0,0,0,0.08);
+        }
 
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f4f6f9;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
         }
 
         /* ── Navbar ── */
         .navbar {
-            background: #1a73e8;
-            padding: 0 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: var(--blue);
+            padding: 0 32px;
             height: 60px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-
-        .navbar-brand {
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .navbar-user {
-            color: white;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .btn-logout {
-            padding: 7px 16px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-            transition: background 0.2s;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .btn-logout:hover {
-            background: rgba(255,255,255,0.35);
-        }
-
-        /* ── Page body ── */
-        .page {
-            padding: 30px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        /* ── Welcome banner ── */
-        .welcome-banner {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 25px;
-            margin-bottom: 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            border-left: 5px solid #1a73e8;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-
-        .welcome-banner h1 {
-            font-size: 20px;
-            color: #333;
-        }
-
-        .welcome-banner p {
+        .navbar-brand { color: #fff; font-size: 18px; font-weight: 700; text-decoration: none; }
+        .navbar-right { display: flex; align-items: center; gap: 16px; }
+        .navbar-user  { color: rgba(255,255,255,0.85); font-size: 13px; }
+        .btn-logout {
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            text-decoration: none;
             font-size: 13px;
-            color: #888;
-            margin-top: 4px;
+            font-weight: 600;
+            transition: background .2s;
         }
+        .btn-logout:hover { background: rgba(255,255,255,0.32); }
 
+        /* ── Page layout ── */
+        .page { padding: 28px 32px; max-width: 1240px; margin: auto; }
+
+        /* ── Welcome ── */
+        .welcome-banner {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--blue);
+        }
+        .welcome-banner h1 { font-size: 19px; font-weight: 700; color: var(--text); }
+        .welcome-banner p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
         .welcome-badge {
-            background: #e8f0fe;
-            color: #1a73e8;
-            padding: 6px 16px;
+            background: var(--blue-lt);
+            color: var(--blue);
+            padding: 5px 14px;
             border-radius: 20px;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 700;
         }
 
         /* ── Summary cards ── */
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
         }
-
         .card {
-            background: white;
-            border-radius: 10px;
+            background: var(--surface);
+            border-radius: var(--radius);
             padding: 18px 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            box-shadow: var(--shadow);
             text-align: center;
-            border-top: 4px solid #ccc;
+            border-top: 4px solid var(--border);
+            transition: transform .15s;
         }
-
-        .card.pending  { border-top-color: #ffc107; }
-        .card.review   { border-top-color: #17a2b8; }
-        .card.resolved { border-top-color: #28a745; }
-        .card.rejected { border-top-color: #dc3545; }
-        .card.total    { border-top-color: #1a73e8; }
-
-        .card-number {
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .card-label {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .card:hover { transform: translateY(-2px); }
+        .card.pending  { border-top-color: var(--yellow); }
+        .card.review   { border-top-color: var(--teal); }
+        .card.resolved { border-top-color: var(--green); }
+        .card.rejected { border-top-color: var(--red); }
+        .card.total    { border-top-color: var(--blue); }
+        .card-number { font-size: 30px; font-weight: 700; font-family: 'DM Mono', monospace; }
+        .card-label  { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
 
         /* ── Section title ── */
         .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #444;
-            margin-bottom: 15px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -152,151 +125,323 @@
 
         /* ── Table ── */
         .table-wrapper {
-            background: white;
-            border-radius: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
         }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; font-size: 13.5px; }
+        th { background: var(--blue); color: #fff; font-weight: 600; white-space: nowrap; }
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover { background: #eef3ff; }
+        td { color: var(--text); vertical-align: middle; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 13px 16px;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        th {
-            background: #1a73e8;
-            color: white;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        tr:nth-child(even) { background: #f9f9f9; }
-        tr:hover           { background: #eef3ff; }
-
-        td { color: #444; vertical-align: middle; }
-
-        /* ── Status badges ── */
+        /* ── Badges ── */
         .badge {
             padding: 3px 10px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
+            font-size: 11px;
+            font-weight: 700;
             display: inline-block;
         }
-
-        .badge-pending  { background: #ffc107; color: #333; }
-        .badge-review   { background: #17a2b8; }
-        .badge-resolved { background: #28a745; }
-        .badge-rejected { background: #dc3545; }
+        .badge-pending  { background: #fef3c7; color: #92400e; }
+        .badge-review   { background: #cffafe; color: #164e63; }
+        .badge-resolved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
 
         /* ── Progress bar ── */
         .progress-wrap {
-            background: #e9ecef;
+            background: #e2e8f0;
             border-radius: 10px;
-            height: 8px;
-            width: 100px;
+            height: 7px;
+            width: 90px;
             overflow: hidden;
             display: inline-block;
             vertical-align: middle;
             margin-left: 8px;
         }
+        .progress-bar { height: 100%; background: var(--green); border-radius: 10px; }
 
-        .progress-bar {
-            height: 100%;
-            background: #28a745;
-            border-radius: 10px;
-        }
-
-        /* ── View button ── */
-        .btn-view {
+        /* ── Buttons ── */
+        .btn {
             padding: 6px 14px;
-            background: #1a73e8;
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-            transition: background 0.2s;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background .2s, opacity .2s;
             white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
         }
-
-        .btn-view:hover { background: #1558b0; }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: var(--blue-dk); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-danger  { background: var(--red); color: #fff; }
+        .btn-teal    { background: var(--teal); color: #fff; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
+        .btn-outline:hover { background: var(--bg); }
 
         /* ── Recent feedback ── */
         .feedback-list {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             overflow: hidden;
+            margin-bottom: 28px;
         }
-
         .feedback-item {
             padding: 14px 20px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: flex-start;
             gap: 12px;
         }
-
         .feedback-item:last-child { border-bottom: none; }
-
         .feedback-avatar {
-            width: 36px;
-            height: 36px;
+            width: 34px; height: 34px;
             border-radius: 50%;
-            background: #1a73e8;
-            color: white;
+            background: var(--blue);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px;
+            flex-shrink: 0;
+        }
+        .feedback-body { flex: 1; }
+        .feedback-meta { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+        .feedback-meta strong { color: var(--text); }
+        .feedback-msg { font-size: 13px; color: #475569; }
+        .empty-state { text-align: center; padding: 30px; color: #94a3b8; font-size: 14px; }
+
+        /* ═══════════════════════════════════════════════════
+           SLIDE-IN DETAIL PANEL
+        ═══════════════════════════════════════════════════ */
+        .panel-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.45);
+            backdrop-filter: blur(2px);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s;
+        }
+        .panel-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .detail-panel {
+            position: fixed;
+            top: 0; right: 0;
+            width: min(540px, 100vw);
+            height: 100vh;
+            background: var(--surface);
+            z-index: 201;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.15);
+        }
+        .detail-panel.open { transform: translateX(0); }
+
+        .panel-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+        }
+        .panel-header h2 { font-size: 15px; font-weight: 700; }
+        .panel-close {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--muted);
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
+        }
+        .panel-close:hover { background: var(--border); }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 22px;
+        }
+
+        .panel-footer {
+            padding: 16px 22px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: var(--bg);
+        }
+
+        /* ── Detail field layout ── */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .detail-field label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .detail-field span {
+            font-size: 13.5px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        .detail-field.full { grid-column: 1 / -1; }
+
+        .detail-message {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+        }
+
+        /* ── Status selector inside panel ── */
+        .status-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .status-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all .15s;
+            opacity: 0.55;
+        }
+        .status-btn.active { opacity: 1; }
+        .status-btn[data-val="pending"]   { background: #fef3c7; color: #92400e; border-color: #fbbf24; }
+        .status-btn[data-val="in_review"] { background: #cffafe; color: #164e63; border-color: #22d3ee; }
+        .status-btn[data-val="resolved"]  { background: #dcfce7; color: #166534; border-color: #4ade80; }
+        .status-btn[data-val="rejected"]  { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+
+        /* ── Feedback form ── */
+        .feedback-form-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .feedback-textarea {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--text);
+            resize: vertical;
+            min-height: 90px;
+            background: var(--surface);
+            transition: border-color .2s;
+        }
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(26,115,232,.12);
+        }
+
+        /* ── Previous feedback thread ── */
+        .thread-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin: 18px 0 10px;
+        }
+        .thread-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .thread-avatar {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .thread-bubble {
+            background: var(--bg);
+            border-radius: 0 8px 8px 8px;
+            padding: 8px 12px;
+            flex: 1;
+        }
+        .thread-meta { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+        .thread-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+        /* ── Loading spinner ── */
+        .panel-loading {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            height: 200px;
+            color: var(--muted);
             font-size: 14px;
-            flex-shrink: 0;
+            gap: 10px;
         }
-
-        .feedback-body { flex: 1; }
-
-        .feedback-meta {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 3px;
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2.5px solid var(--border);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .feedback-meta strong { color: #333; }
-
-        .feedback-msg {
-            font-size: 13px;
-            color: #555;
-        }
-
-        .feedback-status {
-            font-size: 11px;
-            padding: 2px 8px;
+        /* ── Toast notification ── */
+        .toast {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
             border-radius: 10px;
-            color: white;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 400;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all .3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         }
-
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: #aaa;
-            font-size: 14px;
-        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--green); }
+        .toast.error   { border-left: 4px solid var(--red); }
     </style>
 </head>
-
 <body>
 
-<!-- Navbar -->
+<!-- ── Navbar ── -->
 <nav class="navbar">
     <a href="#" class="navbar-brand">🛠 Staff Panel</a>
     <div class="navbar-right">
@@ -307,35 +452,31 @@
 
 <div class="page">
 
-    <!-- Welcome Banner -->
+    <!-- Welcome -->
     <div class="welcome-banner">
         <div>
             <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}! 👋</h1>
-            <p>Here's an overview of all submissions that need your attention.</p>
+            <p>Here's an overview of all submissions. Click <strong>View →</strong> on any row to review and respond.</p>
         </div>
         <span class="welcome-badge">🛡 Staff</span>
     </div>
 
-    <!-- Summary Cards -->
-    {% with total_pending=0 total_review=0 total_resolved=0 total_rejected=0 total_all=0 %}
+    <!-- Summary cards (totals computed from stats) -->
     <div class="summary-cards">
         <div class="card pending">
-            <div class="card-number">
-                {% for slug, stat in stats.items %}{% if forloop.first %}{{ stat.pending }}{% endif %}{% endfor %}
-                {# We compute totals below in the table #}
-            </div>
+            <div class="card-number" id="total-pending">—</div>
             <div class="card-label">⏳ Pending</div>
         </div>
         <div class="card review">
-            <div class="card-number">—</div>
+            <div class="card-number" id="total-review">—</div>
             <div class="card-label">🔍 In Review</div>
         </div>
         <div class="card resolved">
-            <div class="card-number">—</div>
+            <div class="card-number" id="total-resolved">—</div>
             <div class="card-label">✅ Resolved</div>
         </div>
         <div class="card rejected">
-            <div class="card-number">—</div>
+            <div class="card-number" id="total-rejected">—</div>
             <div class="card-label">❌ Rejected</div>
         </div>
         <div class="card total">
@@ -343,12 +484,11 @@
             <div class="card-label">📂 Categories</div>
         </div>
     </div>
-    {% endwith %}
 
     <!-- Submissions Table -->
     <div class="section-title">📋 Submissions by Category</div>
     <div class="table-wrapper">
-        <table>
+        <table id="stats-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -375,15 +515,17 @@
                     <td>
                         {% if stat.total > 0 %}
                             {% widthratio stat.resolved stat.total 100 as pct %}
-                            <span style="font-size:12px; color:#888;">{{ pct }}%</span>
+                            <span style="font-size:12px; color:var(--muted);">{{ pct }}%</span>
                             <div class="progress-wrap">
                                 <div class="progress-bar" style="width: {{ pct }}%;"></div>
                             </div>
                         {% else %}
-                            <span style="font-size:12px; color:#ccc;">N/A</span>
+                            <span style="font-size:12px; color:#cbd5e1;">N/A</span>
                         {% endif %}
                     </td>
-                    <td><a href="{% url 'staff_category_list' slug %}" class="btn-view">View →</a></td>
+                    <td>
+                        <a href="{% url 'staff_category_list' slug %}" class="btn btn-primary btn-sm">View →</a>
+                    </td>
                 </tr>
             {% empty %}
                 <tr>
@@ -394,7 +536,54 @@
         </table>
     </div>
 
-    <!-- Recent Feedback -->
+    <!-- Recent Submissions (quick-access, panel-enabled) -->
+    <div class="section-title">🗂 Recent Submissions
+        <span style="font-size:12px; font-weight:400; color:var(--muted);">Click any row to review &amp; respond</span>
+    </div>
+    <div class="table-wrapper" style="margin-bottom:28px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category</th>
+                    <th>Submitter</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for sub in recent_submissions %}
+                <tr style="cursor:pointer;" onclick="openPanel('{{ sub.category_slug }}', '{{ sub.pk }}')">
+                    <td style="font-family:'DM Mono',monospace; font-size:12px; color:var(--muted);">#{{ sub.pk }}</td>
+                    <td>{{ sub.category_label }}</td>
+                    <td>{{ sub.user.get_full_name|default:sub.user.username }}</td>
+                    <td>{{ sub.subject|default:"—"|truncatechars:40 }}</td>
+                    <td>
+                        <span class="badge
+                            {% if sub.status == 'pending' %}badge-pending
+                            {% elif sub.status == 'in_review' %}badge-review
+                            {% elif sub.status == 'resolved' %}badge-resolved
+                            {% else %}badge-rejected{% endif %}">
+                            {{ sub.status|capfirst }}
+                        </span>
+                    </td>
+                    <td style="font-size:12px; color:var(--muted);">{{ sub.created_at|timesince }} ago</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openPanel('{{ sub.category_slug }}', '{{ sub.pk }}')">
+                            Open →
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="empty-state">No recent submissions.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recent Feedback Activity -->
     <div class="section-title">💬 Recent Feedback Activity</div>
     <div class="feedback-list">
         {% for fb in recent_feedback %}
@@ -406,7 +595,7 @@
                         {{ fb.category|capfirst }} &nbsp;·&nbsp;
                         {{ fb.created_at|timesince }} ago
                         &nbsp;
-                        <span class="feedback-status badge
+                        <span class="badge
                             {% if fb.new_status == 'resolved' %}badge-resolved
                             {% elif fb.new_status == 'rejected' %}badge-rejected
                             {% elif fb.new_status == 'in_review' %}badge-review
@@ -422,6 +611,214 @@
         {% endfor %}
     </div>
 
+</div><!-- /page -->
+
+<!-- ═══════════════════════════════════════════════════
+     SLIDE-IN DETAIL PANEL
+═══════════════════════════════════════════════════ -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+
+<div class="detail-panel" id="detailPanel">
+    <div class="panel-header">
+        <h2 id="panelTitle">Submission Detail</h2>
+        <button class="panel-close" onclick="closePanel()" title="Close">✕</button>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+        <div class="panel-loading">
+            <div class="spinner"></div> Loading…
+        </div>
+    </div>
+
+    <div class="panel-footer" id="panelFooter" style="display:none;">
+        <button class="btn btn-primary" id="btnSave" onclick="saveChanges()">💾 Save &amp; Send</button>
+        <button class="btn btn-outline" onclick="closePanel()">Cancel</button>
+    </div>
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ── CSRF helper ──
+    function getCsrf() {
+        return document.cookie.split(';')
+            .find(c => c.trim().startsWith('csrftoken='))
+            ?.split('=')[1] ?? '';
+    }
+
+    // ── Compute summary totals from table ──
+    (function() {
+        const rows = document.querySelectorAll('#stats-table tbody tr');
+        let p = 0, r = 0, s = 0, rej = 0;
+        rows.forEach(row => {
+            const badges = row.querySelectorAll('.badge');
+            if (badges.length >= 4) {
+                p   += parseInt(badges[0].textContent) || 0;
+                r   += parseInt(badges[1].textContent) || 0;
+                s   += parseInt(badges[2].textContent) || 0;
+                rej += parseInt(badges[3].textContent) || 0;
+            }
+        });
+        document.getElementById('total-pending').textContent  = p;
+        document.getElementById('total-review').textContent   = r;
+        document.getElementById('total-resolved').textContent = s;
+        document.getElementById('total-rejected').textContent = rej;
+    })();
+
+    // ── Panel state ──
+    let currentSlug = null;
+    let currentId   = null;
+    let selectedStatus = null;
+
+    function openPanel(slug, id) {
+        currentSlug = slug;
+        currentId   = id;
+        selectedStatus = null;
+
+        document.getElementById('panelTitle').textContent = 'Loading…';
+        document.getElementById('panelBody').innerHTML = '<div class="panel-loading"><div class="spinner"></div> Loading…</div>';
+        document.getElementById('panelFooter').style.display = 'none';
+
+        document.getElementById('panelOverlay').classList.add('open');
+        document.getElementById('detailPanel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        fetch(`/staff/submission/${slug}/${id}/detail/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => renderPanel(data))
+        .catch(() => {
+            document.getElementById('panelBody').innerHTML =
+                '<div class="panel-loading" style="color:#dc2626;">Failed to load. Please try again.</div>';
+        });
+    }
+
+    function renderPanel(data) {
+        document.getElementById('panelTitle').textContent = `#${data.id} — ${data.category_label}`;
+        selectedStatus = data.status;
+
+        const statusButtons = ['pending','in_review','resolved','rejected'].map(s => `
+            <button class="status-btn ${s === data.status ? 'active' : ''}"
+                    data-val="${s}"
+                    onclick="selectStatus(this, '${s}')">
+                ${{pending:'⏳ Pending', in_review:'🔍 In Review', resolved:'✅ Resolved', rejected:'❌ Rejected'}[s]}
+            </button>
+        `).join('');
+
+        const thread = (data.feedbacks || []).map(fb => `
+            <div class="thread-item">
+                <div class="thread-avatar">${fb.staff_initial}</div>
+                <div class="thread-bubble">
+                    <div class="thread-meta">${fb.staff_name} · ${fb.created_at} · <span class="badge badge-${fb.new_status.replace('_','-')}">${fb.new_status}</span></div>
+                    <div class="thread-text">${fb.message}</div>
+                </div>
+            </div>
+        `).join('') || '<p style="font-size:13px;color:var(--muted);">No previous messages.</p>';
+
+        document.getElementById('panelBody').innerHTML = `
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <label>Submitted by</label>
+                    <span>${data.user_display}</span>
+                </div>
+                <div class="detail-field">
+                    <label>Category</label>
+                    <span>${data.category_label}</span>
+                </div>
+                <div class="detail-field">
+                    <label>Submitted</label>
+                    <span>${data.created_at}</span>
+                </div>
+                <div class="detail-field">
+                    <label>Current Status</label>
+                    <span class="badge badge-${data.status.replace('_','-')}">${data.status}</span>
+                </div>
+                ${data.subject ? `<div class="detail-field full"><label>Subject</label><span>${data.subject}</span></div>` : ''}
+            </div>
+
+            <div class="detail-message">${data.message || '<em>No message provided.</em>'}</div>
+
+            <div class="feedback-form-title">Update Status</div>
+            <div class="status-row" id="statusRow">${statusButtons}</div>
+
+            <div class="feedback-form-title">Reply / Feedback</div>
+            <textarea id="feedbackText" class="feedback-textarea"
+                placeholder="Write your response or notes here…"></textarea>
+
+            <div class="thread-title">Feedback History</div>
+            ${thread}
+        `;
+
+        document.getElementById('panelFooter').style.display = 'flex';
+    }
+
+    function selectStatus(btn, val) {
+        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedStatus = val;
+    }
+
+    function saveChanges() {
+        const message = document.getElementById('feedbackText')?.value?.trim();
+        if (!message && !selectedStatus) {
+            showToast('Please write a reply or choose a new status.', 'error');
+            return;
+        }
+
+        const btnSave = document.getElementById('btnSave');
+        btnSave.disabled = true;
+        btnSave.textContent = 'Saving…';
+
+        fetch(`/staff/submission/${currentSlug}/${currentId}/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ status: selectedStatus, message: message })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                showToast('✅ Saved successfully!', 'success');
+                closePanel();
+                // refresh page after short delay to update counts
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast(data.error || 'Something went wrong.', 'error');
+            }
+        })
+        .catch(() => showToast('Network error. Try again.', 'error'))
+        .finally(() => {
+            btnSave.disabled = false;
+            btnSave.textContent = '💾 Save & Send';
+        });
+    }
+
+    function closePanel() {
+        document.getElementById('panelOverlay').classList.remove('open');
+        document.getElementById('detailPanel').classList.remove('open');
+        document.body.style.overflow = '';
+        currentSlug = null;
+        currentId   = null;
+    }
+
+    // ── Keyboard shortcut ──
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closePanel();
+    });
+
+    // ── Toast ──
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type}`;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+</script>
 </body>
 </html>
