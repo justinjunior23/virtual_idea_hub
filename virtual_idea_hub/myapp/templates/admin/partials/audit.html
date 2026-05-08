@@ -1,0 +1,544 @@
+{% load static %}
+
+<style>
+  .audit-wrap{
+    animation: fadeUp .45s ease;
+  }
+
+  .audit-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:28px;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+
+  .audit-title{
+    font-family:'Syne',sans-serif;
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:-2px;
+    color:var(--text);
+    line-height:1;
+  }
+
+  .audit-sub{
+    margin-top:8px;
+    color:var(--muted2);
+    font-size:13px;
+    letter-spacing:.4px;
+  }
+
+  .audit-badge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(99,179,237,.08);
+    border:1px solid rgba(99,179,237,.18);
+    color:var(--accent);
+    font-size:12px;
+    font-weight:600;
+  }
+
+  .audit-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--accent3);
+    animation:pulseAudit 1.8s infinite;
+  }
+
+  @keyframes pulseAudit{
+    0%,100%{box-shadow:0 0 0 0 rgba(104,211,145,.45);}
+    50%{box-shadow:0 0 0 7px rgba(104,211,145,0);}
+  }
+
+  .audit-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin-bottom:24px;
+  }
+
+  .audit-stat{
+    position:relative;
+    overflow:hidden;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:24px;
+  }
+
+  .audit-stat::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at top right, rgba(99,179,237,.08), transparent 55%);
+    pointer-events:none;
+  }
+
+  .audit-stat-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--muted2);
+    margin-bottom:14px;
+  }
+
+  .audit-stat-value{
+    font-family:'Syne',sans-serif;
+    font-size:42px;
+    font-weight:800;
+    letter-spacing:-3px;
+    color:var(--text);
+    line-height:1;
+  }
+
+  .audit-stat-foot{
+    margin-top:12px;
+    color:var(--muted2);
+    font-size:11px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .audit-chip{
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.6px;
+  }
+
+  .audit-chip.green{
+    background:rgba(104,211,145,.12);
+    color:var(--accent3);
+  }
+
+  .audit-chip.orange{
+    background:rgba(246,173,85,.12);
+    color:var(--accent2);
+  }
+
+  .audit-chip.blue{
+    background:rgba(99,179,237,.12);
+    color:var(--accent);
+  }
+
+  .audit-main{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:22px;
+    overflow:hidden;
+  }
+
+  .audit-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:22px 24px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface2);
+    flex-wrap:wrap;
+    gap:16px;
+  }
+
+  .audit-head-title{
+    font-family:'Syne',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .audit-head-title::before{
+    content:'';
+    width:4px;
+    height:16px;
+    border-radius:999px;
+    background:var(--accent);
+  }
+
+  .audit-search{
+    width:260px;
+    max-width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px 14px;
+    color:var(--text);
+    outline:none;
+    font-size:13px;
+  }
+
+  .audit-table-wrap{
+    overflow-x:auto;
+  }
+
+  .audit-table{
+    width:100%;
+    border-collapse:collapse;
+  }
+
+  .audit-table thead{
+    background:rgba(255,255,255,.015);
+  }
+
+  .audit-table th{
+    text-align:left;
+    padding:18px 22px;
+    color:var(--muted2);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.8px;
+    font-weight:600;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+
+  .audit-table td{
+    padding:20px 22px;
+    border-bottom:1px solid rgba(255,255,255,.04);
+    vertical-align:middle;
+  }
+
+  .audit-row{
+    transition:.22s ease;
+  }
+
+  .audit-row:hover{
+    background:rgba(99,179,237,.03);
+  }
+
+  .audit-user{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+
+  .audit-avatar{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(99,179,237,.12);
+    color:var(--accent);
+    font-weight:700;
+    font-size:14px;
+    flex-shrink:0;
+  }
+
+  .audit-user-name{
+    color:var(--text);
+    font-weight:600;
+    font-size:14px;
+  }
+
+  .audit-user-role{
+    margin-top:3px;
+    color:var(--muted2);
+    font-size:11px;
+    letter-spacing:.4px;
+  }
+
+  .audit-action{
+    color:var(--text);
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  .audit-time{
+    color:var(--muted2);
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  .audit-status{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.5px;
+  }
+
+  .audit-status.success{
+    background:rgba(104,211,145,.12);
+    color:var(--accent3);
+  }
+
+  .audit-status.pending{
+    background:rgba(246,173,85,.12);
+    color:var(--accent2);
+  }
+
+  .audit-status.failed{
+    background:rgba(252,129,129,.12);
+    color:#fc8181;
+  }
+
+  .audit-empty{
+    padding:80px 20px;
+    text-align:center;
+  }
+
+  .audit-empty-icon{
+    font-size:56px;
+    margin-bottom:16px;
+    opacity:.8;
+  }
+
+  .audit-empty-title{
+    font-family:'Syne',sans-serif;
+    font-size:26px;
+    font-weight:800;
+    margin-bottom:8px;
+  }
+
+  .audit-empty-sub{
+    color:var(--muted2);
+    font-size:13px;
+  }
+
+  @media(max-width:1100px){
+    .audit-grid{
+      grid-template-columns:repeat(2,1fr);
+    }
+  }
+
+  @media(max-width:700px){
+    .audit-grid{
+      grid-template-columns:1fr;
+    }
+
+    .audit-title{
+      font-size:28px;
+    }
+
+    .audit-head{
+      flex-direction:column;
+      align-items:stretch;
+    }
+
+    .audit-search{
+      width:100%;
+    }
+  }
+</style>
+
+<div class="audit-wrap">
+
+  <!-- TOP -->
+  <div class="audit-top">
+    <div>
+      <div class="audit-title">Audit Logs</div>
+      <div class="audit-sub">
+        Monitor system activity, staff actions, status updates and administrative events.
+      </div>
+    </div>
+
+    <div class="audit-badge">
+      <span class="audit-dot"></span>
+      Live Monitoring Active
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="audit-grid">
+
+    <div class="audit-stat">
+      <div class="audit-stat-label">Total Entries</div>
+      <div class="audit-stat-value">
+        {{ audit_entries|length }}
+      </div>
+      <div class="audit-stat-foot">
+        <span class="audit-chip blue">LIVE</span>
+        System generated logs
+      </div>
+    </div>
+
+    <div class="audit-stat">
+      <div class="audit-stat-label">Resolved Actions</div>
+      <div class="audit-stat-value">
+        {{ total_resolved|default:"0" }}
+      </div>
+      <div class="audit-stat-foot">
+        <span class="audit-chip green">SUCCESS</span>
+        Successfully processed
+      </div>
+    </div>
+
+    <div class="audit-stat">
+      <div class="audit-stat-label">Pending Cases</div>
+      <div class="audit-stat-value">
+        {{ total_pending|default:"0" }}
+      </div>
+      <div class="audit-stat-foot">
+        <span class="audit-chip orange">REVIEW</span>
+        Awaiting attention
+      </div>
+    </div>
+
+    <div class="audit-stat">
+      <div class="audit-stat-label">Total Users</div>
+      <div class="audit-stat-value">
+        {{ total_users|default:"0" }}
+      </div>
+      <div class="audit-stat-foot">
+        <span class="audit-chip blue">ACTIVE</span>
+        Registered accounts
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="audit-main">
+
+    <div class="audit-head">
+      <div class="audit-head-title">
+        Recent Audit Activities
+      </div>
+
+      <input
+        type="text"
+        class="audit-search"
+        placeholder="Search audit logs..."
+        id="auditSearch"
+      >
+    </div>
+
+    <div class="audit-table-wrap">
+
+      {% if audit_entries %}
+
+      <table class="audit-table">
+
+        <thead>
+          <tr>
+            <th>Staff</th>
+            <th>Action</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+
+        <tbody id="auditTableBody">
+
+          {% for entry in audit_entries %}
+          <tr class="audit-row">
+
+            <td>
+              <div class="audit-user">
+
+                <div class="audit-avatar">
+                  {{ entry.staff.username|slice:":1"|upper }}
+                </div>
+
+                <div>
+                  <div class="audit-user-name">
+                    {{ entry.staff.username }}
+                  </div>
+
+                  <div class="audit-user-role">
+                    Staff Member
+                  </div>
+                </div>
+
+              </div>
+            </td>
+
+            <td>
+              <div class="audit-action">
+                Updated submission status to
+                <strong>{{ entry.new_status }}</strong>
+
+                {% if entry.feedback %}
+                <br>
+                <small style="color:var(--muted2);">
+                  {{ entry.feedback|truncatechars:80 }}
+                </small>
+                {% endif %}
+              </div>
+            </td>
+
+            <td>
+              {% if entry.new_status == 'resolved' %}
+                <span class="audit-status success">● Resolved</span>
+              {% elif entry.new_status == 'pending' %}
+                <span class="audit-status pending">● Pending</span>
+              {% else %}
+                <span class="audit-status failed">
+                  ● {{ entry.new_status|title }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="audit-time">
+                {{ entry.created_at|date:"M d, Y" }}<br>
+                {{ entry.created_at|time:"H:i A" }}
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+      {% else %}
+
+      <div class="audit-empty">
+        <div class="audit-empty-icon">📜</div>
+        <div class="audit-empty-title">
+          No Audit Logs Found
+        </div>
+        <div class="audit-empty-sub">
+          System audit entries will appear here once staff begin taking actions.
+        </div>
+      </div>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  const searchInput = document.getElementById('auditSearch');
+  const rows = document.querySelectorAll('.audit-row');
+
+  if(searchInput){
+    searchInput.addEventListener('keyup', function(){
+
+      const value = this.value.toLowerCase();
+
+      rows.forEach(row => {
+        row.style.display =
+          row.innerText.toLowerCase().includes(value)
+          ? ''
+          : 'none';
+      });
+
+    });
+  }
+
+})();
+</script>

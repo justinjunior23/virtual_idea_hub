@@ -29,6 +29,7 @@ from django.views.decorators.http import require_POST
 import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.db.models import Count
 
 
 
@@ -1429,7 +1430,7 @@ def analytics_partial(request):
 # ADD THESE VIEWS TO YOUR views.py  (paste after analytics_partial)
 # ─────────────────────────────────────────────────────────────────────────────
 
-from django.db.models import Count
+
 
 
 def _admin_partial_check(request):
@@ -1491,7 +1492,7 @@ def notifications_partial(request):
     ).count()
     ctx['total_notifications'] = ctx['total_pending'] + ctx['resolved_today']
     ctx['notifications'] = []  # Real notification model not yet defined; template shows demo
-    return render(request, 'admin/partials/notifications.html', ctx)
+    return render(request, 'admin/partials/da', ctx)
 
 
 # ── ACTIVITY TIMELINE ──────────────────────────────────────────────────────────
