@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create User</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f9; padding: 30px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+        .btn-submit:hover { background: #0056b3; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #007bff; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .message { padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{% url 'admin_user_list' %}" class="back-link">← Back to Users</a>
+    <h2>➕ Create New User</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Username</label>
+        <input type="text" name="username" required placeholder="e.g. john_doe">
+
+        <label>Email</label>
+        <input type="email" name="email" required placeholder="e.g. john@example.com">
+
+        <label>Password</label>
+        <input type="password" name="password" required placeholder="Enter a strong password">
+
+        <label>Role</label>
+        <select name="role">
+            {% for value, label in role_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn-submit">Create User</button>
+    </form>
+</div>
+</body>
+</html>

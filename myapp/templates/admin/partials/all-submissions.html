@@ -1,0 +1,132 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<style>
+.cat-color-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cat-chip { font-size:9px; letter-spacing:1px; padding:3px 8px; border-radius:4px; font-weight:500; text-transform:uppercase; }
+.cat-chip.awareness      { background:rgba(99,179,237,.12);  color:var(--accent); }
+.cat-chip.innovation     { background:rgba(183,148,244,.12); color:var(--accent5); }
+.cat-chip.suggestion     { background:rgba(104,211,145,.12); color:var(--accent3); }
+.cat-chip.emergency      { background:rgba(252,129,129,.18); color:var(--accent4); }
+.cat-chip.recommendation { background:rgba(246,173,85,.12);  color:var(--accent2); }
+.cat-chip.complaint      { background:rgba(252,129,129,.12); color:var(--accent4); }
+.cat-chip.reporting      { background:rgba(99,179,237,.1);   color:var(--accent); }
+.cat-chip.others         { background:rgba(113,128,150,.12); color:var(--muted2); }
+
+.num { font-family:'Syne',sans-serif; font-weight:700; }
+.num.pending  { color:var(--accent2); }
+.num.resolved { color:var(--accent3); }
+.num.total    { color:var(--text); }
+.num.week     { color:var(--accent); }
+</style>
+
+<div class="topbar">
+  <div>
+    <div class="page-title">All Submissions</div>
+    <div class="page-sub">Every submission across all categories — {{ total_posts|default:"0" }} total</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="sub-clock">—</span></div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s">
+    <div class="stat-box-label">Total Posts</div>
+    <div class="stat-box-val">{{ total_posts|default:"0" }}</div>
+    <div class="stat-box-sub">All categories</div>
+  </div>
+  <div class="stat-box orange" style="animation-delay:.1s">
+    <div class="stat-box-label">Pending</div>
+    <div class="stat-box-val">{{ total_pending|default:"0" }}</div>
+    <div class="stat-box-sub">Awaiting review</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.15s">
+    <div class="stat-box-label">Resolved</div>
+    <div class="stat-box-val">{{ total_resolved|default:"0" }}</div>
+    <div class="stat-box-sub">Completed</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.2s">
+    <div class="stat-box-label">This Week</div>
+    <div class="stat-box-val">{{ total_new|default:"0" }}</div>
+    <div class="stat-box-sub">New submissions</div>
+  </div>
+</div>
+
+<!-- Category quick-jump -->
+<div class="filter-bar" style="margin-bottom:20px;">
+  <button class="filter-btn active" data-cat="all">⊞ All</button>
+  <a href="/admin-dashboard/awareness/"       class="filter-btn">◎ Awareness</a>
+  <a href="/admin-dashboard/innovations/"     class="filter-btn">💡 Innovation</a>
+  <a href="/admin-dashboard/suggestions/"     class="filter-btn">✦ Suggestions</a>
+  <a href="/admin-dashboard/complaints/"      class="filter-btn">⚑ Complaints</a>
+  <a href="/admin-dashboard/emergencies/"     class="filter-btn">⚠ Emergency</a>
+  <a href="/admin-dashboard/anonymous/"       class="filter-btn">◌ Anonymous</a>
+</div>
+
+<!-- Category breakdown table -->
+<div class="section-header">
+  <div class="section-title">Category Breakdown</div>
+  <div class="section-count">{{ category_stats|length|default:"8" }} categories</div>
+</div>
+
+<div class="p-table-wrap" style="animation-delay:.25s;">
+  <table class="p-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Total</th>
+        <th>Pending</th>
+        <th>Resolved</th>
+        <th>This Week</th>
+        <th>Resolution %</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in category_stats %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="cat-color-dot" style="background:{% if cat.slug == 'awareness' %}#63b3ed{% elif cat.slug == 'innovation' %}#b794f4{% elif cat.slug == 'suggestion' %}#68d391{% elif cat.slug == 'emergency' %}#fc8181{% elif cat.slug == 'recommendation' %}#f6ad55{% elif cat.slug == 'complaint' %}#fc8181{% elif cat.slug == 'reporting' %}#63b3ed{% else %}#4a5568{% endif %}"></div>
+            <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;">{{ cat.label }}</span>
+          </div>
+        </td>
+        <td><span class="num total">{{ cat.total }}</span></td>
+        <td><span class="num pending">{{ cat.pending }}</span></td>
+        <td><span class="num resolved">{{ cat.resolved }}</span></td>
+        <td><span class="num week">{{ cat.this_week }}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:60px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
+              <div style="height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent3),var(--accent));width:{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %};transition:width .8s ease;"></div>
+            </div>
+            <span style="font-size:10px;color:var(--muted2);">{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %}</span>
+          </div>
+        </td>
+        <td>
+          {% if cat.pending > 0 %}
+          <span class="badge pending">● Pending</span>
+          {% else %}
+          <span class="badge resolved">✓ Clear</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="/staff/{{ cat.slug }}/" style="font-size:10px;color:var(--accent);text-decoration:none;border:1px solid rgba(99,179,237,.2);padding:3px 10px;border-radius:6px;transition:all .2s;" onmouseover="this.style.background='rgba(99,179,237,.1)'" onmouseout="this.style.background='transparent'">View →</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted2);font-size:12px;">No category data available</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('sub-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+})();
+</script>

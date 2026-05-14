@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+{% block title %}Home — Virtual Idea Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── HERO ── */
+    .hero {
+        background: linear-gradient(135deg, #0f2419 0%, #1b4332 50%, #0f2419 100%);
+        color: #fff;
+        padding: 5rem 2rem 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse at 20% 50%, rgba(110,231,183,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 20%, rgba(45,106,79,0.15) 0%, transparent 50%);
+    }
+    .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+    .hero-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 4rem;
+        align-items: center;
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(110,231,183,0.15);
+        border: 1px solid rgba(110,231,183,0.3);
+        color: #6ee7b7;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        margin-bottom: 1.25rem;
+        animation: fadeUp 0.5s ease both;
+    }
+    .hero-badge span { width: 6px; height: 6px; background: #6ee7b7; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+    .hero-title {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        animation: fadeUp 0.5s 0.1s ease both;
+        opacity: 0;
+    }
+    .hero-title .accent { color: #6ee7b7; }
+    .hero-title .underline-word {
+        position: relative;
+        display: inline-block;
+    }
+    .hero-title .underline-word::after {
+        content: '';
+        position: absolute;
+        bottom: 4px; left: 0; right: 0;
+        height: 3px;
+        background: #6ee7b7;
+        border-radius: 2px;
+        transform: scaleX(0);
+        transform-origin: left;
+        animation: lineIn 0.6s 0.7s ease forwards;
+    }
+    @keyframes lineIn { to { transform: scaleX(1); } }
+
+    .hero-desc {
+        color: rgba(255,255,255,0.65);
+        font-size: 1rem;
+        line-height: 1.7;
+        margin: 1.25rem 0 2rem;
+        max-width: 520px;
+        animation: fadeUp 0.5s 0.2s ease both;
+        opacity: 0;
+    }
+    .hero-actions {
+        display: flex;
+        gap: 0.85rem;
+        flex-wrap: wrap;
+        animation: fadeUp 0.5s 0.3s ease both;
+        opacity: 0;
+    }
+    .btn-hero-primary {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #6ee7b7; color: #0f2419;
+        border-radius: 10px; font-family: 'Syne', sans-serif;
+        font-size: 0.9rem; font-weight: 700;
+        text-decoration: none; border: none; cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-hero-primary:hover { background: #a7f3d0; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(110,231,183,0.35); }
+    .btn-hero-ghost {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff; border-radius: 10px;
+        font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600;
+        text-decoration: none; transition: all 0.2s;
+    }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.4); }
+
+    .hero-stats-card {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 1.75rem;
+        backdrop-filter: blur(10px);
+        animation: fadeUp 0.5s 0.35s ease both;
+        opacity: 0;
+    }
+    .stats-card-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        margin-bottom: 1.25rem;
+    }
+    .stats-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+    }
+    .stat-item {
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: background 0.2s;
+    }
+    .stat-item:hover { background: rgba(255,255,255,0.09); }
+    .stat-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: #6ee7b7;
+        line-height: 1;
+    }
+    .stat-lbl { font-size: 0.72rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem; }
+    .stat-divider {
+        grid-column: 1/-1;
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 0.25rem 0;
+    }
+    .stat-total {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: rgba(110,231,183,0.1);
+        border: 1px solid rgba(110,231,183,0.2);
+        border-radius: 10px;
+    }
+    .stat-total-label { font-size: 0.8rem; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .stat-total-num { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: #6ee7b7; }
+
+    /* ── SECTION WRAPPER ── */
+    .section {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+    .section-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+    .section-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .section-sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+    .view-all {
+        font-size: 0.8rem; font-weight: 600; color: var(--accent);
+        text-decoration: none; white-space: nowrap;
+        display: flex; align-items: center; gap: 0.3rem;
+        transition: gap 0.2s;
+    }
+    .view-all:hover { gap: 0.5rem; }
+
+    /* ── RECENT POSTS GRID ── */
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+    .post-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.07); border-color: var(--cat-color, var(--accent)); }
+    .post-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--cat-color, var(--accent));
+    }
+    .post-tag {
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--cat-color, var(--accent));
+        background: var(--cat-bg, var(--accent-light));
+        padding: 0.2rem 0.5rem; border-radius: 999px;
+        margin-bottom: 0.75rem;
+    }
+    .post-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.95rem; font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.5rem;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .post-excerpt {
+        font-size: 0.8rem; color: var(--muted); line-height: 1.5;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .post-meta { font-size: 0.7rem; color: #b0aca3; margin-top: 0.75rem; }
+
+    /* ── EMERGENCY BANNER ── */
+    .emergency-section { background: #fff8f0; border-top: 1px solid #fde8cc; border-bottom: 1px solid #fde8cc; }
+    .emergency-inner { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+    .emergency-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .emergency-dot { width: 10px; height: 10px; background: #d35400; border-radius: 50%; animation: pulse 1.5s infinite; }
+    .emergency-label { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #d35400; }
+    .emergency-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .emergency-card {
+        background: #fff; border: 1.5px solid #fde8cc; border-radius: 12px;
+        padding: 1rem 1.1rem; transition: all 0.2s;
+        border-left: 3px solid #d35400;
+    }
+    .emergency-card:hover { border-color: #d35400; transform: translateX(3px); }
+    .emergency-card-title { font-family: 'Syne', sans-serif; font-size: 0.875rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .emergency-card-excerpt { font-size: 0.78rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .emergency-card-meta { font-size: 0.7rem; color: #b0aca3; margin-top: 0.5rem; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+        background: var(--text);
+        color: #fff;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+    .cta-inner { max-width: 600px; margin: 0 auto; }
+    .cta-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+    .cta-title span { color: #6ee7b7; }
+    .cta-desc { color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.7; margin-bottom: 2rem; }
+    .cta-actions { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── WELCOME BANNER (logged in) ── */
+    .welcome-bar {
+        background: var(--accent-light);
+        border-bottom: 1px solid #b7e4c7;
+        padding: 0.75rem 2rem;
+    }
+    .welcome-bar-inner {
+        max-width: 1280px; margin: 0 auto;
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        font-size: 0.875rem;
+    }
+    .welcome-bar strong { color: var(--accent); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeUp 0.5s ease both; }
+    .fade-in-2 { animation: fadeUp 0.5s 0.15s ease both; }
+    .fade-in-3 { animation: fadeUp 0.5s 0.3s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+        .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+        .hero-stats-card { max-width: 480px; }
+        .posts-grid { grid-template-columns: repeat(2, 1fr); }
+        .emergency-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .posts-grid { grid-template-columns: 1fr; }
+        .emergency-grid { grid-template-columns: 1fr; }
+        .stats-grid-2 { grid-template-columns: 1fr 1fr; }
+        .hero { padding: 3rem 1.5rem 2.5rem; }
+        .section { padding: 2.5rem 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<div class="welcome-bar">
+    <div class="welcome-bar-inner">
+        <span>👋 Welcome back, <strong>{{ user.first_name|default:user.username }}</strong>! Ready to share your ideas today?</span>
+        <a href="{% url 'user_dashboard' %}" style="font-size:0.8rem; font-weight:600; color:var(--accent); text-decoration:none;">
+            Go to Dashboard →
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-badge">
+                <span></span> Community Platform
+            </div>
+            <h1 class="hero-title">
+                Your voice shapes<br>
+                our <span class="accent underline-word">community</span>
+            </h1>
+            <p class="hero-desc">
+                Virtual Idea Hub is where ideas become action. Share awareness posts,
+                innovations, suggestions, complaints, and reports — all in one place,
+                reviewed by the people who can make a difference.
+            </p>
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'create_awareness' %}" class="btn-hero-primary">
+                        <i class="fas fa-plus"></i> Post an Idea
+                    </a>
+                    <a href="{% url 'user_dashboard' %}" class="btn-hero-ghost">
+                        <i class="fas fa-th-large"></i> My Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn-hero-primary">
+                        <i class="fas fa-user-plus"></i> Join the Hub
+                    </a>
+                    <a href="{% url 'login' %}" class="btn-hero-ghost">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stats card -->
+        <div class="hero-stats-card">
+            <div class="stats-card-title">Community at a glance</div>
+            <div class="stats-grid-2">
+                <div class="stat-item">
+                    <div class="stat-num">{{ stats.awareness }}</div>
+                    <div class="stat-lbl">Awareness Posts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">{{ stats.innovations }}</div>
+                    <div class="stat-lbl">Innovations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">{{ stats.suggestions }}</div>
+                    <div class="stat-lbl">Suggestions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">{{ stats.reports }}</div>
+                    <div class="stat-lbl">Reports</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-total">
+                    <div class="stat-total-label">Total Posts</div>
+                    <div class="stat-total-num">{{ stats.total_posts }}</div>
+                </div>
+                <div class="stat-item" style="grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; padding: 0.75rem 1rem;">
+                    <div style="font-size:0.78rem; color:rgba(255,255,255,0.5);">Registered Users</div>
+                    <div style="font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:#6ee7b7;">{{ stats.total_users }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- RECENT AWARENESS POSTS -->
+{% if recent_awareness %}
+<div class="section fade-in">
+    <div class="section-head">
+        <div>
+            <div class="section-title">Recent Awareness</div>
+            <div class="section-sub">Latest posts from the community</div>
+        </div>
+        <a href="{% url 'create_awareness' %}" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="posts-grid">
+        {% for post in recent_awareness %}
+        <div class="post-card" style="--cat-color:#c0392b; --cat-bg:#fdecea;">
+            <div class="post-tag"><i class="fas fa-bullhorn"></i> Awareness</div>
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-excerpt">{{ post.content }}</div>
+            <div class="post-meta"><i class="fas fa-clock"></i> {{ post.created_at|timesince }} ago</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- EMERGENCY STRIP -->
+{% if recent_emergencies %}
+<div class="emergency-section">
+    <div class="emergency-inner">
+        <div class="emergency-head">
+            <div class="emergency-dot"></div>
+            <div class="emergency-label">Active Emergencies</div>
+        </div>
+        <div class="emergency-grid">
+            {% for post in recent_emergencies %}
+            <div class="emergency-card">
+                <div class="emergency-card-title">{{ post.title }}</div>
+                <div class="emergency-card-excerpt">{{ post.content }}</div>
+                <div class="emergency-card-meta"><i class="fas fa-clock"></i> {{ post.created_at|timesince }} ago</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- RECENT INNOVATIONS -->
+{% if recent_innovations %}
+<div class="section fade-in-2">
+    <div class="section-head">
+        <div>
+            <div class="section-title">Latest Innovations</div>
+            <div class="section-sub">Bold ideas from community members</div>
+        </div>
+        <a href="{% url 'create_innovation' %}" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="posts-grid">
+        {% for post in recent_innovations %}
+        <div class="post-card" style="--cat-color:#495057; --cat-bg:#f2f3f4;">
+            <div class="post-tag"><i class="fas fa-lightbulb"></i> Innovation</div>
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-excerpt">{{ post.content }}</div>
+            <div class="post-meta"><i class="fas fa-clock"></i> {{ post.created_at|timesince }} ago</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- RECENT SUGGESTIONS -->
+{% if recent_suggestions %}
+<div class="section fade-in-3" style="padding-top:0;">
+    <div class="section-head">
+        <div>
+            <div class="section-title">Recent Suggestions</div>
+            <div class="section-sub">Constructive ideas for improvement</div>
+        </div>
+        <a href="{% url 'create_suggestion' %}" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="posts-grid">
+        {% for post in recent_suggestions %}
+        <div class="post-card" style="--cat-color:#8e44ad; --cat-bg:#f5eef8;">
+            <div class="post-tag"><i class="fas fa-comment"></i> Suggestion</div>
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-excerpt">{{ post.content }}</div>
+            <div class="post-meta"><i class="fas fa-clock"></i> {{ post.created_at|timesince }} ago</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- EMPTY STATE -->
+{% if not recent_awareness and not recent_innovations and not recent_suggestions and not recent_emergencies %}
+<div class="section" style="text-align:center; padding: 5rem 2rem;">
+    <div style="font-size:3rem; margin-bottom:1rem;">💡</div>
+    <div style="font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; margin-bottom:0.5rem;">No posts yet</div>
+    <p style="color:var(--muted); max-width:400px; margin:0 auto 2rem;">Be the first to share an idea, report, or suggestion with the Virtual Idea Hub community.</p>
+    <a href="{% if user.is_authenticated %}{% url 'create_awareness' %}{% else %}{% url 'register' %}{% endif %}" class="btn-hero-primary" style="background:var(--accent); color:#fff; display:inline-flex;">
+        <i class="fas fa-plus"></i> Post First Idea
+    </a>
+</div>
+{% endif %}
+
+<!-- CTA -->
+{% if not user.is_authenticated %}
+<div class="cta-section">
+    <div class="cta-inner">
+        <h2 class="cta-title">Ready to make your <span>voice heard?</span></h2>
+        <p class="cta-desc">
+            Join thousands of community members sharing ideas, reporting issues, and driving
+            positive change through Virtual Idea Hub.
+        </p>
+        <div class="cta-actions">
+            <a href="{% url 'register' %}" class="btn-hero-primary">
+                <i class="fas fa-user-plus"></i> Create Free Account
+            </a>
+            <a href="{% url 'login' %}" class="btn-hero-ghost">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

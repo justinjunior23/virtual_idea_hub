@@ -1,0 +1,55 @@
+<!-- templates/admin/partials/security.html -->
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<style>
+.sec-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(99,179,237,.05);transition:background .15s;}
+.sec-item:hover{background:rgba(99,179,237,.03);}
+.sec-status{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sec-status.ok{background:var(--accent3);box-shadow:0 0 6px rgba(104,211,145,.4);}
+.sec-status.warn{background:var(--accent2);}
+.sec-status.danger{background:var(--accent4);}
+</style>
+
+<div class="topbar">
+  <div><div class="page-title">Security</div><div class="page-sub">System security logs, login history, and settings</div></div>
+  <div class="topbar-right"><div class="time-badge"><span class="status-dot"></span><span id="sec-clock">—</span></div></div>
+</div>
+
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box green" style="animation-delay:.05s"><div class="stat-box-label">System Status</div><div class="stat-box-val" style="font-size:24px;">✓ OK</div><div class="stat-box-sub">All clear</div></div>
+  <div class="stat-box blue" style="animation-delay:.1s"><div class="stat-box-label">Active Sessions</div><div class="stat-box-val">{{ active_sessions|default:"1" }}</div><div class="stat-box-sub">Logged in now</div></div>
+  <div class="stat-box orange" style="animation-delay:.15s"><div class="stat-box-label">Failed Logins</div><div class="stat-box-val">{{ failed_logins|default:"0" }}</div><div class="stat-box-sub">Last 24 hours</div></div>
+  <div class="stat-box purple" style="animation-delay:.2s"><div class="stat-box-label">Admin Accounts</div><div class="stat-box-val">{{ admin_count|default:"0" }}</div><div class="stat-box-sub">Privileged users</div></div>
+</div>
+
+<div class="two-col" style="animation:fadeUp .4s ease .2s both;">
+  <div class="p-card">
+    <div class="p-card-head"><div class="section-title">Security Checks</div></div>
+    <div>
+      <div class="sec-item"><div class="sec-status ok"></div><div style="flex:1"><div style="font-size:12px;color:var(--text);">OTP email verification</div><div style="font-size:10px;color:var(--muted2);">Enabled for all new registrations</div></div><span class="badge resolved">Active</span></div>
+      <div class="sec-item"><div class="sec-status ok"></div><div style="flex:1"><div style="font-size:12px;color:var(--text);">Role-based access control</div><div style="font-size:10px;color:var(--muted2);">Admin / Staff / User roles enforced</div></div><span class="badge resolved">Active</span></div>
+      <div class="sec-item"><div class="sec-status ok"></div><div style="flex:1"><div style="font-size:12px;color:var(--text);">@login_required decorators</div><div style="font-size:10px;color:var(--muted2);">All protected views secured</div></div><span class="badge resolved">Active</span></div>
+      <div class="sec-item"><div class="sec-status warn"></div><div style="flex:1"><div style="font-size:12px;color:var(--text);">HTTPS / SSL</div><div style="font-size:10px;color:var(--muted2);">Configure in production deployment</div></div><span class="badge pending">Check</span></div>
+      <div class="sec-item"><div class="sec-status warn"></div><div style="flex:1"><div style="font-size:12px;color:var(--text);">DEBUG mode</div><div style="font-size:10px;color:var(--muted2);">Must be False in production</div></div><span class="badge pending">Review</span></div>
+    </div>
+  </div>
+
+  <div class="p-card">
+    <div class="p-card-head"><div class="section-title">Recent Admin Actions</div></div>
+    <div>
+      {% for fb in recent_feedback %}
+      <div class="sec-item">
+        <div class="sec-status ok"></div>
+        <div style="flex:1;">
+          <div style="font-size:12px;color:var(--text);">{{ fb.staff.username }} updated {{ fb.category }} #{{ fb.post_id }}</div>
+          <div style="font-size:10px;color:var(--muted2);">Status → {{ fb.new_status }} · {{ fb.created_at|timesince }} ago</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">No Actions Yet</div></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>(function(){ document.getElementById('sec-clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false}); })();</script>

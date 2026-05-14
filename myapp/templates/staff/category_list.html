@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ category_label }} — Staff</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue: #1a73e8; --blue-dk: #1558b0; --green: #16a34a;
+            --red: #dc2626; --yellow: #f59e0b; --teal: #0891b2;
+            --surface: #fff; --bg: #f1f5f9; --border: #e2e8f0;
+            --text: #1e293b; --muted: #64748b; --radius: 12px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+        .navbar {
+            background: var(--blue); padding: 0 32px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+        }
+        .navbar-brand { color: #fff; font-size: 18px; font-weight: 700; text-decoration: none; }
+        .navbar-right { display: flex; gap: 12px; align-items: center; }
+        .btn {
+            padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: none; text-decoration: none; display: inline-block;
+            transition: background .2s;
+        }
+        .btn-back { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-back:hover { background: rgba(255,255,255,0.32); }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: var(--blue-dk); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+        .page { padding: 28px 32px; max-width: 1240px; margin: auto; }
+
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 22px;
+        }
+        .page-header h1 { font-size: 20px; font-weight: 700; }
+        .page-header p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+        /* Filters */
+        .filters {
+            background: var(--surface); border-radius: var(--radius);
+            padding: 16px 20px; margin-bottom: 22px;
+            box-shadow: var(--shadow);
+            display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        }
+        .filters input, .filters select {
+            padding: 8px 12px; border: 1.5px solid var(--border);
+            border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+            background: var(--bg); color: var(--text);
+        }
+        .filters input:focus, .filters select:focus {
+            outline: none; border-color: var(--blue);
+        }
+        .filters input { flex: 1; min-width: 200px; }
+
+        /* Table */
+        .table-wrapper {
+            background: var(--surface); border-radius: var(--radius);
+            overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; font-size: 13.5px; }
+        th { background: var(--blue); color: #fff; font-weight: 600; white-space: nowrap; }
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover { background: #eef3ff; cursor: pointer; }
+        td { color: var(--text); vertical-align: middle; }
+
+        .badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 11px;
+            font-weight: 700; display: inline-block;
+        }
+        .badge-pending  { background: #fef3c7; color: #92400e; }
+        .badge-review   { background: #cffafe; color: #164e63; }
+        .badge-resolved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-anon     { background: #f1f5f9; color: #64748b; font-style: italic; }
+
+        /* Pagination */
+        .pagination {
+            display: flex; gap: 6px; justify-content: center;
+            flex-wrap: wrap; margin-top: 10px;
+        }
+        .pagination a, .pagination span {
+            padding: 7px 13px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; text-decoration: none; border: 1.5px solid var(--border);
+            color: var(--text); background: var(--surface); transition: all .15s;
+        }
+        .pagination a:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .pagination .current { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{% url 'staff_dashboard' %}" class="navbar-brand">🛠 Staff Panel</a>
+    <div class="navbar-right">
+        <a href="{% url 'staff_dashboard' %}" class="btn btn-back">← Dashboard</a>
+    </div>
+</nav>
+
+<div class="page">
+
+    <div class="page-header">
+        <div>
+            <h1>{{ category_label }}</h1>
+            <p>{{ page_obj.paginator.count }} submission{{ page_obj.paginator.count|pluralize }} total</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search submissions…">
+        <select name="status">
+            {% for val, display in status_choices %}
+                <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ display }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        {% if query or status_filter %}
+            <a href="?">Clear</a>
+        {% endif %}
+    </form>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>Submitter</th>
+                    <th>
+                        {% if category_slug == 'reporting' %}Report Name{% else %}Title{% endif %}
+                    </th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for post in page_obj %}
+                <tr onclick="window.location='{% url 'staff_post_detail' category_slug post.pk %}'">
+                    <td style="color:var(--muted);font-size:12px;">{{ forloop.counter }}</td>
+                    <td style="font-family:'DM Mono',monospace; font-size:12px; color:var(--muted);">#{{ post.pk }}</td>
+                    <td>
+                        {% if post.user %}
+                            {{ post.user.get_full_name|default:post.user.username }}
+                        {% elif category_slug == 'reporting' %}
+                            {{ post.first_name }} {{ post.last_name }}
+                        {% else %}
+                            <span class="badge badge-anon">Anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if category_slug == 'reporting' %}
+                            {{ post.report_name|truncatechars:50 }}
+                        {% else %}
+                            {{ post.title|truncatechars:50 }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge
+                            {% if post.status == 'pending' %}badge-pending
+                            {% elif post.status == 'in_review' %}badge-review
+                            {% elif post.status == 'resolved' %}badge-resolved
+                            {% else %}badge-rejected{% endif %}">
+                            {{ post.status|capfirst }}
+                        </span>
+                    </td>
+                    <td style="font-size:12px; color:var(--muted);">{{ post.created_at|timesince }} ago</td>
+                    <td>
+                        <a href="{% url 'staff_post_detail' category_slug post.pk %}"
+                           class="btn btn-primary btn-sm"
+                           onclick="event.stopPropagation()">
+                            Review →
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">No submissions found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status_filter }}">← Prev</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}&q={{ query }}&status={{ status_filter }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status_filter }}">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+</body>
+</html>

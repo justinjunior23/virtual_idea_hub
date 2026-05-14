@@ -1,0 +1,641 @@
+{% load static %}
+
+<style>
+  /* ─── ANALYTICS-SPECIFIC STYLES ─────────────────────────── */
+  .an-topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+
+  .an-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .an-kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px 22px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .an-kpi:nth-child(1) { animation-delay: 0.05s; }
+  .an-kpi:nth-child(2) { animation-delay: 0.12s; }
+  .an-kpi:nth-child(3) { animation-delay: 0.19s; }
+
+  .an-kpi::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 16px;
+  }
+  .an-kpi:hover::after { opacity: 1; }
+
+  .an-kpi.blue::after   { background: radial-gradient(circle at 80% 20%, rgba(99,179,237,0.06), transparent 60%); }
+  .an-kpi.green::after  { background: radial-gradient(circle at 80% 20%, rgba(104,211,145,0.06), transparent 60%); }
+  .an-kpi.orange::after { background: radial-gradient(circle at 80% 20%, rgba(246,173,85,0.06), transparent 60%); }
+
+  .an-kpi-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+
+  .an-kpi.blue .an-kpi-icon   { background: rgba(99,179,237,0.12);  }
+  .an-kpi.green .an-kpi-icon  { background: rgba(104,211,145,0.12); }
+  .an-kpi.orange .an-kpi-icon { background: rgba(246,173,85,0.12);  }
+
+  .an-kpi-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; }
+
+  .an-kpi-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: -3px;
+    display: inline-block;
+  }
+
+  .an-kpi.blue .an-kpi-num   { color: var(--accent); }
+  .an-kpi.green .an-kpi-num  { color: var(--accent3); }
+  .an-kpi.orange .an-kpi-num { color: var(--accent2); }
+
+  .an-kpi-sub {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .an-pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .an-kpi.blue .an-pulse   { background: var(--accent);  animation: pulse-blue 2s infinite; }
+  .an-kpi.green .an-pulse  { background: var(--accent3); animation: pulse-green 2s infinite; }
+  .an-kpi.orange .an-pulse { background: var(--accent2); animation: pulse-orange 2s infinite; }
+
+  @keyframes pulse-blue {
+    0%,100% { box-shadow: 0 0 0 0 rgba(99,179,237,0.4); }
+    50%      { box-shadow: 0 0 0 5px rgba(99,179,237,0); }
+  }
+  @keyframes pulse-orange {
+    0%,100% { box-shadow: 0 0 0 0 rgba(246,173,85,0.4); }
+    50%      { box-shadow: 0 0 0 5px rgba(246,173,85,0); }
+  }
+
+  /* ─── SPARKLINES ────────────────────────────────────────── */
+  .an-spark {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 100px; height: 48px;
+    opacity: 0.35;
+  }
+
+  /* ─── MIDDLE ROW ─────────────────────────────────────────── */
+  .an-mid-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease 0.25s both;
+  }
+
+  .an-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .an-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .an-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .an-card-title::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+
+  .an-tag { font-size: 9px; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; background: rgba(99,179,237,0.1); color: var(--accent); border: 1px solid rgba(99,179,237,0.2); }
+
+  .an-card-body { padding: 20px 22px; }
+
+  /* ─── BAR CHART ─────────────────────────────────────────── */
+  .bar-chart { display: flex; flex-direction: column; gap: 14px; }
+
+  .bc-row { display: flex; align-items: center; gap: 12px; }
+
+  .bc-label { font-size: 10px; color: var(--muted2); width: 88px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .bc-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bc-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .bc-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; color: var(--text); width: 28px; text-align: right; flex-shrink: 0; }
+
+  /* ─── DONUT CHART ───────────────────────────────────────── */
+  .donut-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 8px;
+    gap: 16px;
+  }
+
+  .donut-center {
+    position: relative;
+    width: 130px; height: 130px;
+  }
+
+  .donut-svg-big { transform: rotate(-90deg); }
+
+  .donut-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .donut-pct {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--accent3);
+    letter-spacing: -1.5px;
+    line-height: 1;
+  }
+
+  .donut-pct-label { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); margin-top: 3px; }
+
+  .donut-pills { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+  .dp-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted2); }
+  .dp-left { display: flex; align-items: center; gap: 7px; }
+  .dp-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+  .dp-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; color: var(--text); }
+
+  /* ─── BOTTOM ROW ─────────────────────────────────────────── */
+  .an-bot-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.5s ease 0.35s both;
+  }
+
+  /* ─── MINI STAT CARD ────────────────────────────────────── */
+  .an-mini {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .an-mini-label { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted2); margin-bottom: 14px; }
+
+  .an-mini-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 34px;
+    letter-spacing: -2px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .an-mini-foot { font-size: 10px; color: var(--muted2); margin-top: 10px; display: flex; align-items: center; gap: 5px; }
+
+  .pct-chip { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .pct-chip.up   { background: rgba(104,211,145,0.12); color: var(--accent3); }
+  .pct-chip.down { background: rgba(252,129,129,0.12); color: var(--accent4); }
+  .pct-chip.neu  { background: rgba(99,179,237,0.1);   color: var(--accent);  }
+
+  /* ─── ACTIVITY FEED ─────────────────────────────────────── */
+  .activity-feed { display: flex; flex-direction: column; }
+
+  .af-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(99,179,237,0.05);
+    position: relative;
+  }
+
+  .af-item:last-child { border-bottom: none; }
+
+  .af-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .af-dot.blue   { background: var(--accent); }
+  .af-dot.green  { background: var(--accent3); }
+  .af-dot.orange { background: var(--accent2); }
+  .af-dot.red    { background: var(--accent4); }
+  .af-dot.purple { background: var(--accent5); }
+
+  .af-content { flex: 1; }
+
+  .af-text { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+  .af-text strong { color: var(--text); font-weight: 500; }
+
+  .af-time { font-size: 9px; color: var(--muted); margin-top: 3px; letter-spacing: 0.5px; }
+
+  /* ─── RESOLUTION GAUGE ──────────────────────────────────── */
+  .gauge-wrap { padding: 10px 0; text-align: center; }
+
+  .gauge-arc {
+    position: relative;
+    width: 160px;
+    height: 80px;
+    margin: 0 auto 16px;
+    overflow: visible;
+  }
+
+  .gauge-label-big {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -1.5px;
+    color: var(--accent3);
+    line-height: 1;
+  }
+
+  .gauge-label-sub { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); margin-top: 4px; }
+
+  .gauge-row { display: flex; justify-content: space-around; margin-top: 16px; }
+  .gauge-item { text-align: center; }
+  .gauge-item-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); }
+  .gauge-item-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted2); margin-top: 2px; }
+
+  /* ─── HEADER BADGES ─────────────────────────────────────── */
+  .an-badge-row { display: flex; align-items: center; gap: 8px; }
+
+  .an-live-badge {
+    font-size: 10px;
+    color: var(--accent3);
+    background: rgba(104,211,145,0.1);
+    border: 1px solid rgba(104,211,145,0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .an-date-badge {
+    font-size: 10px;
+    color: var(--muted2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+
+  /* ─── SCROLL INDICATOR ──────────────────────────────────── */
+  .scroll-top-btn {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    width: 40px; height: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 999;
+    color: var(--muted2);
+  }
+
+  .scroll-top-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  /* ─── DIVIDER ────────────────────────────────────────────── */
+  .an-section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .an-section-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .an-section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+
+<!-- ═══ TOPBAR ════════════════════════════════════════════════ -->
+<div class="an-topbar">
+  <div>
+    <div class="page-title">Analytics</div>
+    <div class="page-sub">Real-time system overview &amp; performance metrics</div>
+  </div>
+  <div class="an-badge-row">
+    <div class="an-live-badge"><span class="status-dot"></span> Live Data</div>
+    <div class="an-date-badge" id="an-date">—</div>
+  </div>
+</div>
+
+<!-- ═══ KPI ROW ══════════════════════════════════════════════ -->
+<div class="an-kpi-row">
+
+  <div class="an-kpi blue">
+    <svg class="an-spark" viewBox="0 0 100 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,38 14,30 28,34 42,20 56,24 70,10 84,16 100,4" stroke="#63b3ed" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <polyline points="0,38 14,30 28,34 42,20 56,24 70,10 84,16 100,4 100,48 0,48" fill="rgba(99,179,237,0.07)" stroke="none"/>
+    </svg>
+    <div class="an-kpi-icon">👥</div>
+    <div class="an-kpi-label">Total Users</div>
+    <div class="an-kpi-num" data-target="{{ total_users }}">0</div>
+    <div class="an-kpi-sub"><span class="an-pulse"></span>Registered accounts</div>
+  </div>
+
+  <div class="an-kpi green">
+    <svg class="an-spark" viewBox="0 0 100 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,42 12,36 24,38 36,26 50,18 64,22 78,8 100,12" stroke="#68d391" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <polyline points="0,42 12,36 24,38 36,26 50,18 64,22 78,8 100,12 100,48 0,48" fill="rgba(104,211,145,0.07)" stroke="none"/>
+    </svg>
+    <div class="an-kpi-icon">📋</div>
+    <div class="an-kpi-label">Total Posts</div>
+    <div class="an-kpi-num" data-target="{{ total_posts }}">0</div>
+    <div class="an-kpi-sub"><span class="an-pulse"></span>Across all categories</div>
+  </div>
+
+  <div class="an-kpi orange">
+    <svg class="an-spark" viewBox="0 0 100 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,20 16,28 30,22 44,32 58,18 72,26 86,14 100,20" stroke="#f6ad55" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <polyline points="0,20 16,28 30,22 44,32 58,18 72,26 86,14 100,20 100,48 0,48" fill="rgba(246,173,85,0.07)" stroke="none"/>
+    </svg>
+    <div class="an-kpi-icon">⌛</div>
+    <div class="an-kpi-label">Pending Review</div>
+    <div class="an-kpi-num" data-target="{{ total_pending }}">0</div>
+    <div class="an-kpi-sub"><span class="an-pulse"></span>Awaiting action</div>
+  </div>
+
+</div>
+
+<!-- ═══ MID ROW ══════════════════════════════════════════════ -->
+
+<div class="an-section-head">
+  <div class="an-section-label">Category Breakdown</div>
+  <div class="an-section-line"></div>
+</div>
+
+<div class="an-mid-row">
+
+  <!-- Bar Chart -->
+  <div class="an-card">
+    <div class="an-card-head">
+      <div class="an-card-title">Post Distribution</div>
+      <div class="an-tag">By Category</div>
+    </div>
+    <div class="an-card-body">
+      <div class="bar-chart" id="bar-chart">
+        {% if category_stats %}
+          {% for cat in category_stats %}
+          <div class="bc-row">
+            <div class="bc-label" title="{{ cat.label }}">{{ cat.label }}</div>
+            <div class="bc-track">
+              <div class="bc-fill"
+                data-w="{% if total_posts > 0 %}{% widthratio cat.total total_posts 100 %}{% else %}0{% endif %}"
+                style="background: {% if cat.slug == 'awareness' %}#63b3ed{% elif cat.slug == 'innovation' %}#b794f4{% elif cat.slug == 'suggestion' %}#68d391{% elif cat.slug == 'emergency' %}#fc8181{% elif cat.slug == 'recommendation' %}#f6ad55{% elif cat.slug == 'complaint' %}#fc8181{% elif cat.slug == 'reporting' %}#63b3ed{% else %}#4a5568{% endif %};">
+              </div>
+            </div>
+            <div class="bc-val">{{ cat.total }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <!-- Fallback demo bars -->
+          <div class="bc-row"><div class="bc-label">Awareness</div><div class="bc-track"><div class="bc-fill" data-w="72" style="background:#63b3ed;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Innovation</div><div class="bc-track"><div class="bc-fill" data-w="55" style="background:#b794f4;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Suggestions</div><div class="bc-track"><div class="bc-fill" data-w="40" style="background:#68d391;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Emergency</div><div class="bc-track"><div class="bc-fill" data-w="20" style="background:#fc8181;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Complaints</div><div class="bc-track"><div class="bc-fill" data-w="33" style="background:#f6ad55;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Reporting</div><div class="bc-track"><div class="bc-fill" data-w="16" style="background:#63b3ed;"></div></div><div class="bc-val">—</div></div>
+          <div class="bc-row"><div class="bc-label">Others</div><div class="bc-track"><div class="bc-fill" data-w="8" style="background:#4a5568;"></div></div><div class="bc-val">—</div></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Donut: Resolution Rate -->
+  <div class="an-card">
+    <div class="an-card-head">
+      <div class="an-card-title">Resolution Rate</div>
+      <div class="an-tag">Overall</div>
+    </div>
+    <div class="an-card-body">
+      <div class="donut-wrap">
+        <div class="donut-center">
+          <svg class="donut-svg-big" width="130" height="130" viewBox="0 0 130 130">
+            <!-- Track -->
+            <circle cx="65" cy="65" r="50" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="16"/>
+            <!-- Resolved (green) -->
+            <circle cx="65" cy="65" r="50" fill="none" stroke="#68d391" stroke-width="16"
+              stroke-dasharray="{% if total_posts > 0 %}{% widthratio total_resolved total_posts 314 %} 314{% else %}0 314{% endif %}"
+              stroke-linecap="round"
+              id="donut-resolved"/>
+            <!-- Pending (orange) — offset by resolved arc -->
+            <circle cx="65" cy="65" r="50" fill="none" stroke="#f6ad55" stroke-width="16"
+              stroke-dasharray="{% if total_posts > 0 %}{% widthratio total_pending total_posts 314 %} 314{% else %}0 314{% endif %}"
+              stroke-dashoffset="-{% if total_posts > 0 %}{% widthratio total_resolved total_posts 314 %}{% else %}0{% endif %}"
+              stroke-linecap="round"
+              id="donut-pending"/>
+          </svg>
+          <div class="donut-inner">
+            <div class="donut-pct" id="res-pct">
+              {% if total_posts > 0 %}{% widthratio total_resolved total_posts 100 %}%{% else %}0%{% endif %}
+            </div>
+            <div class="donut-pct-label">Resolved</div>
+          </div>
+        </div>
+        <div class="donut-pills">
+          <div class="dp-row">
+            <div class="dp-left"><div class="dp-dot" style="background:#68d391"></div>Resolved</div>
+            <div class="dp-count">{{ total_resolved }}</div>
+          </div>
+          <div class="dp-row">
+            <div class="dp-left"><div class="dp-dot" style="background:#f6ad55"></div>Pending</div>
+            <div class="dp-count">{{ total_pending }}</div>
+          </div>
+          <div class="dp-row">
+            <div class="dp-left"><div class="dp-dot" style="background:#4a5568"></div>Other</div>
+            <div class="dp-count">{% if total_posts %}{{ total_posts|add:"-total_resolved"|add:"-total_pending" }}{% else %}0{% endif %}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ BOTTOM ROW ═══════════════════════════════════════════ -->
+
+<div class="an-section-head">
+  <div class="an-section-label">Quick Insights</div>
+  <div class="an-section-line"></div>
+</div>
+
+<div class="an-bot-row">
+
+  <!-- Avg posts per user -->
+  <div class="an-mini">
+    <div class="an-mini-label">Avg Posts / User</div>
+    <div class="an-mini-val" id="avg-val">—</div>
+    <div class="an-mini-foot">
+      <span class="pct-chip neu">◎</span>
+      Engagement ratio
+    </div>
+  </div>
+
+  <!-- Pending ratio -->
+  <div class="an-mini">
+    <div class="an-mini-label">Pending Ratio</div>
+    <div class="an-mini-val" id="pend-pct">—</div>
+    <div class="an-mini-foot">
+      <span class="pct-chip down" id="pend-chip">↑</span>
+      <span id="pend-label">Needs attention</span>
+    </div>
+  </div>
+
+  <!-- System Health -->
+  <div class="an-mini" style="background: linear-gradient(135deg, var(--surface) 60%, rgba(104,211,145,0.04));">
+    <div class="an-mini-label">System Health</div>
+    <div class="an-mini-val" style="color:var(--accent3);">Good</div>
+    <div class="an-mini-foot">
+      <span class="pct-chip up">▲</span>
+      All systems operational
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // ── DATE ─────────────────────────────────────────────────
+  const dateEl = document.getElementById('an-date');
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  // ── COUNTER ANIMATION ─────────────────────────────────────
+  function animateCount(el, target, duration) {
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { start = target; clearInterval(timer); }
+      el.textContent = Math.floor(start).toLocaleString();
+    }, 16);
+  }
+
+  const totalUsers   = parseInt('{{ total_users|default:"0" }}');
+  const totalPosts   = parseInt('{{ total_posts|default:"0" }}');
+  const totalPending = parseInt('{{ total_pending|default:"0" }}');
+
+  document.querySelectorAll('.an-kpi-num[data-target]').forEach(el => {
+    const t = parseInt(el.dataset.target) || 0;
+    animateCount(el, t, 1200);
+  });
+
+  // ── BAR ANIMATION ─────────────────────────────────────────
+  setTimeout(() => {
+    document.querySelectorAll('.bc-fill[data-w]').forEach(bar => {
+      bar.style.width = (bar.dataset.w || '0') + '%';
+    });
+  }, 300);
+
+  // ── DERIVED STATS ─────────────────────────────────────────
+  const avgEl   = document.getElementById('avg-val');
+  const pendEl  = document.getElementById('pend-pct');
+  const chipEl  = document.getElementById('pend-chip');
+  const labelEl = document.getElementById('pend-label');
+
+  if (avgEl && totalUsers > 0) {
+    const avg = (totalPosts / totalUsers).toFixed(1);
+    avgEl.textContent = avg;
+  } else if (avgEl) {
+    avgEl.textContent = '0';
+  }
+
+  if (pendEl) {
+    const pct = totalPosts > 0 ? Math.round((totalPending / totalPosts) * 100) : 0;
+    pendEl.textContent = pct + '%';
+    if (pct > 40) {
+      chipEl.textContent = '▲ High';
+      chipEl.className = 'pct-chip down';
+      labelEl.textContent = 'Needs urgent attention';
+    } else if (pct > 20) {
+      chipEl.textContent = '→ Med';
+      chipEl.className = 'pct-chip neu';
+      labelEl.textContent = 'Within normal range';
+    } else {
+      chipEl.textContent = '▼ Low';
+      chipEl.className = 'pct-chip up';
+      labelEl.textContent = 'Great clearance rate';
+    }
+  }
+
+})();
+</script>

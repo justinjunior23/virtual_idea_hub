@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Review #{{ post.pk }} — {{ category_label }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue: #1a73e8; --blue-dk: #1558b0; --blue-lt: #e8f0fe;
+            --green: #16a34a; --red: #dc2626; --yellow: #f59e0b; --teal: #0891b2;
+            --surface: #fff; --bg: #f1f5f9; --border: #e2e8f0;
+            --text: #1e293b; --muted: #64748b; --radius: 12px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* Navbar */
+        .navbar {
+            background: var(--blue); padding: 0 32px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+        }
+        .navbar-brand { color: #fff; font-size: 18px; font-weight: 700; text-decoration: none; }
+        .navbar-right { display: flex; gap: 12px; align-items: center; }
+        .btn-nav {
+            padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            background: rgba(255,255,255,0.18); color: #fff;
+            border: 1px solid rgba(255,255,255,0.3); text-decoration: none;
+            transition: background .2s;
+        }
+        .btn-nav:hover { background: rgba(255,255,255,0.32); }
+
+        .page { padding: 28px 32px; max-width: 960px; margin: auto; }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 13px; color: var(--muted); margin-bottom: 20px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .breadcrumb a { color: var(--blue); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Messages */
+        .messages { margin-bottom: 20px; }
+        .alert {
+            padding: 12px 16px; border-radius: 8px; font-size: 13.5px;
+            margin-bottom: 8px; font-weight: 500;
+        }
+        .alert-success { background: #dcfce7; color: #166534; border-left: 4px solid var(--green); }
+        .alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid var(--yellow); }
+        .alert-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--red); }
+
+        /* Layout */
+        .layout { display: grid; grid-template-columns: 1fr 360px; gap: 22px; align-items: start; }
+        @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+
+        /* Card */
+        .card {
+            background: var(--surface); border-radius: var(--radius);
+            box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px;
+        }
+        .card-header {
+            padding: 16px 22px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg);
+        }
+        .card-header h2 { font-size: 14px; font-weight: 700; color: var(--text); }
+        .card-body { padding: 22px; }
+
+        /* Submission detail fields */
+        .detail-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+        }
+        .detail-field label {
+            font-size: 11px; color: var(--muted); text-transform: uppercase;
+            letter-spacing: .4px; font-weight: 600; display: block; margin-bottom: 4px;
+        }
+        .detail-field span { font-size: 14px; color: var(--text); font-weight: 500; }
+        .detail-field.full { grid-column: 1 / -1; }
+
+        .submission-content {
+            background: var(--bg); border-radius: 8px; padding: 16px;
+            font-size: 14px; line-height: 1.7; color: var(--text);
+            border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px;
+            font-weight: 700; display: inline-block;
+        }
+        .badge-pending  { background: #fef3c7; color: #92400e; }
+        .badge-review   { background: #cffafe; color: #164e63; }
+        .badge-resolved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-anon     { background: #f1f5f9; color: #64748b; font-style: italic; }
+
+        /* Feedback form */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 700;
+            color: var(--muted); text-transform: uppercase;
+            letter-spacing: .4px; margin-bottom: 6px;
+        }
+        .form-control {
+            width: 100%; padding: 10px 12px;
+            border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+            color: var(--text); background: var(--surface);
+            transition: border-color .2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,.1); }
+        textarea.form-control { resize: vertical; min-height: 110px; }
+
+        /* Status buttons */
+        .status-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .status-opt {
+            padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            cursor: pointer; border: 2px solid transparent; transition: all .15s; opacity: .5;
+        }
+        .status-opt input[type=radio] { display: none; }
+        .status-opt.checked { opacity: 1; }
+        .status-opt.s-review   { background: #cffafe; color: #164e63; border-color: #22d3ee; }
+        .status-opt.s-resolved { background: #dcfce7; color: #166534; border-color: #4ade80; }
+        .status-opt.s-rejected { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+
+        /* Email toggle */
+        .email-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; background: var(--bg);
+            border-radius: 8px; border: 1px solid var(--border);
+            font-size: 13px; color: var(--text);
+        }
+        .email-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--blue); }
+        .email-addr { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        /* Submit button */
+        .btn-submit {
+            width: 100%; padding: 11px; background: var(--blue); color: #fff;
+            border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: background .2s; margin-top: 4px;
+        }
+        .btn-submit:hover { background: var(--blue-dk); }
+
+        /* Feedback thread */
+        .thread-item {
+            display: flex; gap: 12px; margin-bottom: 16px;
+        }
+        .thread-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--blue); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px; flex-shrink: 0;
+        }
+        .thread-bubble {
+            flex: 1; background: var(--bg); border-radius: 0 10px 10px 10px;
+            padding: 10px 14px; border: 1px solid var(--border);
+        }
+        .thread-meta { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+        .thread-meta strong { color: var(--text); }
+        .thread-text { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+        .thread-email {
+            font-size: 11px; color: var(--green); margin-top: 5px; font-weight: 600;
+        }
+        .empty-thread { font-size: 13px; color: var(--muted); text-align: center; padding: 20px 0; }
+
+        /* Reporting extra fields */
+        .extra-fields {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+        }
+        .extra-field label { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-bottom: 3px; text-transform: uppercase; }
+        .extra-field span  { font-size: 13.5px; color: var(--text); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{% url 'staff_dashboard' %}" class="navbar-brand">🛠 Staff Panel</a>
+    <div class="navbar-right">
+        <a href="{% url 'staff_category_list' category_slug %}" class="btn-nav">← Back to {{ category_label }}</a>
+        <a href="{% url 'staff_dashboard' %}" class="btn-nav">Dashboard</a>
+    </div>
+</nav>
+
+<div class="page">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="{% url 'staff_dashboard' %}">Dashboard</a> ›
+        <a href="{% url 'staff_category_list' category_slug %}">{{ category_label }}</a> ›
+        <span>#{{ post.pk }}</span>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="layout">
+
+        <!-- LEFT: Submission Detail -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>📄 Submission #{{ post.pk }}</h2>
+                    <span class="badge
+                        {% if post.status == 'pending' %}badge-pending
+                        {% elif post.status == 'in_review' %}badge-review
+                        {% elif post.status == 'resolved' %}badge-resolved
+                        {% else %}badge-rejected{% endif %}">
+                        {{ post.status|capfirst }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid">
+
+                        <!-- Submitter -->
+                        <div class="detail-field">
+                            <label>Submitted By</label>
+                            <span>
+                                {% if post.user %}
+                                    {{ post.user.get_full_name|default:post.user.username }}
+                                {% elif category_slug == 'reporting' %}
+                                    {{ post.first_name }} {{ post.last_name }}
+                                {% else %}
+                                    <span class="badge badge-anon">Anonymous</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="detail-field">
+                            <label>Category</label>
+                            <span>{{ category_label }}</span>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="detail-field">
+                            <label>Submitted</label>
+                            <span>{{ post.created_at|date:"M d, Y H:i" }}</span>
+                        </div>
+
+                        <!-- Contact email -->
+                        <div class="detail-field">
+                            <label>Contact Email</label>
+                            <span>
+                                {% if contact_email %}
+                                    <a href="mailto:{{ contact_email }}" style="color:var(--blue);">{{ contact_email }}</a>
+                                {% else %}
+                                    <span style="color:var(--muted);">Not available</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Title / Report name -->
+                        <div class="detail-field full">
+                            <label>{% if category_slug == 'reporting' %}Report Name{% else %}Title{% endif %}</label>
+                            <span>
+                                {% if category_slug == 'reporting' %}
+                                    {{ post.report_name }}
+                                {% else %}
+                                    {{ post.title }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <!-- Main content -->
+                    <div class="form-group">
+                        <label>{% if category_slug == 'reporting' %}Description{% else %}Content{% endif %}</label>
+                        <div class="submission-content">{% if category_slug == 'reporting' %}{{ post.report_description }}{% else %}{{ post.content }}{% endif %}</div>
+                    </div>
+
+                    <!-- Reporting-specific extra fields -->
+                    {% if category_slug == 'reporting' %}
+                    <div class="extra-fields">
+                        {% if post.location %}
+                        <div class="extra-field">
+                            <label>Location</label>
+                            <span>{{ post.location }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.department %}
+                        <div class="extra-field">
+                            <label>Department</label>
+                            <span>{{ post.department }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.school %}
+                        <div class="extra-field">
+                            <label>School</label>
+                            <span>{{ post.school }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.registration_number %}
+                        <div class="extra-field">
+                            <label>Reg. Number</label>
+                            <span>{{ post.registration_number }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.telephone %}
+                        <div class="extra-field">
+                            <label>Telephone</label>
+                            <span>{{ post.telephone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Feedback History -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>💬 Feedback History</h2>
+                    <span style="font-size:12px; color:var(--muted);">{{ previous_feedback|length }} message{{ previous_feedback|length|pluralize }}</span>
+                </div>
+                <div class="card-body">
+                    {% for fb in previous_feedback %}
+                        <div class="thread-item">
+                            <div class="thread-avatar">{{ fb.staff.username|first|upper }}</div>
+                            <div class="thread-bubble">
+                                <div class="thread-meta">
+                                    <strong>{{ fb.staff.get_full_name|default:fb.staff.username }}</strong>
+                                    &nbsp;·&nbsp; {{ fb.created_at|date:"M d, Y H:i" }}
+                                    &nbsp;·&nbsp;
+                                    <span class="badge
+                                        {% if fb.new_status == 'resolved' %}badge-resolved
+                                        {% elif fb.new_status == 'rejected' %}badge-rejected
+                                        {% elif fb.new_status == 'in_review' %}badge-review
+                                        {% else %}badge-pending{% endif %}" style="font-size:10px; padding:2px 8px;">
+                                        {{ fb.new_status|capfirst }}
+                                    </span>
+                                </div>
+                                <div class="thread-text">{{ fb.message }}</div>
+                                {% if fb.email_sent %}
+                                    <div class="thread-email">✉ Email sent to submitter</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-thread">No feedback given yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Action Panel -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚡ Take Action</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Status -->
+                        <div class="form-group">
+                            <label>Change Status To</label>
+                            <div class="status-options" id="statusOptions">
+                                {% for val, display in status_choices %}
+                                    <label class="status-opt s-{{ val|cut:'_' }} {% if post.status == val %}checked{% endif %}"
+                                           id="opt-{{ val }}"
+                                           onclick="selectStatus('{{ val }}')">
+                                        <input type="radio" name="new_status" value="{{ val }}"
+                                               {% if post.status == val %}checked{% endif %}>
+                                        {% if val == 'in_review' %}🔍{% elif val == 'resolved' %}✅{% elif val == 'rejected' %}❌{% endif %}
+                                        {{ display }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="form-group">
+                            <label>Feedback Message</label>
+                            <textarea name="feedback_message" class="form-control"
+                                placeholder="Write your response to the submitter…" required></textarea>
+                        </div>
+
+                        <!-- Send email toggle -->
+                        <div class="form-group">
+                            <div class="email-row">
+                                <input type="checkbox" name="send_email" id="sendEmail"
+                                       {% if contact_email %}checked{% endif %}
+                                       {% if not contact_email %}disabled{% endif %}>
+                                <label for="sendEmail" style="font-weight:600; cursor:pointer;">
+                                    📧 Send email notification
+                                </label>
+                            </div>
+                            {% if contact_email %}
+                                <div class="email-addr">Will be sent to: {{ contact_email }}</div>
+                            {% else %}
+                                <div class="email-addr" style="color:var(--red);">No contact email available for this submission.</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn-submit">💾 Save Feedback</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function selectStatus(val) {
+        document.querySelectorAll('.status-opt').forEach(el => el.classList.remove('checked'));
+        const opt = document.getElementById('opt-' + val);
+        if (opt) opt.classList.add('checked');
+        const radio = opt.querySelector('input[type=radio]');
+        if (radio) radio.checked = true;
+    }
+</script>
+
+</body>
+</html>

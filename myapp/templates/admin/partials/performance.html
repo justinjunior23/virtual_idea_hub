@@ -1,0 +1,126 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<style>
+.perf-bar-row { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(99,179,237,.05); }
+.perf-bar-row:last-child{border-bottom:none;}
+.perf-name { width:110px;flex-shrink:0;font-size:11px;color:var(--text); }
+.perf-track { flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden; }
+.perf-fill { height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.25,1,.5,1); }
+.perf-val { width:42px;text-align:right;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);flex-shrink:0; }
+.perf-pct { width:36px;text-align:right;font-size:10px;color:var(--muted2);flex-shrink:0; }
+
+.leaderboard-row { display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid rgba(99,179,237,.05);transition:background .15s; }
+.leaderboard-row:hover{background:rgba(99,179,237,.04);}
+.lb-rank { font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--muted);width:28px;flex-shrink:0; }
+.lb-rank.gold{color:#f6ad55;} .lb-rank.silver{color:#a0aec0;} .lb-rank.bronze{color:#c08060;}
+.lb-avatar { width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;flex-shrink:0; }
+.lb-info{flex:1;min-width:0;}
+.lb-name{font-size:12px;color:var(--text);font-weight:500;}
+.lb-sub{font-size:10px;color:var(--muted2);}
+.lb-score{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--accent);}
+</style>
+
+<div class="topbar">
+  <div>
+    <div class="page-title">Performance</div>
+    <div class="page-sub">Department performance metrics and staff leaderboard</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="perf-clock">—</span></div>
+  </div>
+</div>
+
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box green" style="animation-delay:.05s">
+    <div class="stat-box-label">Resolution Rate</div>
+    <div class="stat-box-val">{% if total_posts > 0 %}{% widthratio total_resolved total_posts 100 %}%{% else %}0%{% endif %}</div>
+    <div class="stat-box-sub">Overall</div>
+  </div>
+  <div class="stat-box blue" style="animation-delay:.1s">
+    <div class="stat-box-label">Total Resolved</div>
+    <div class="stat-box-val">{{ total_resolved|default:"0" }}</div>
+    <div class="stat-box-sub">All time</div>
+  </div>
+  <div class="stat-box orange" style="animation-delay:.15s">
+    <div class="stat-box-label">Avg Response</div>
+    <div class="stat-box-val">2.4d</div>
+    <div class="stat-box-sub">Days to respond</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.2s">
+    <div class="stat-box-label">Staff Active</div>
+    <div class="stat-box-val">{{ staff_count|default:"0" }}</div>
+    <div class="stat-box-sub">Reviewing now</div>
+  </div>
+</div>
+
+<div class="two-col" style="gap:20px;animation:fadeUp .4s ease .2s both;">
+
+  <!-- Category Resolution Performance -->
+  <div class="p-card">
+    <div class="p-card-head"><div class="section-title">Resolution by Category</div></div>
+    <div class="p-card-body">
+      {% for cat in category_stats %}
+      <div class="perf-bar-row">
+        <div class="perf-name">{{ cat.label }}</div>
+        <div class="perf-track">
+          <div class="perf-fill" data-w="{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}{% else %}0{% endif %}"
+            style="background:{% if cat.slug == 'awareness' %}#63b3ed{% elif cat.slug == 'innovation' %}#b794f4{% elif cat.slug == 'suggestion' %}#68d391{% elif cat.slug == 'emergency' %}#fc8181{% elif cat.slug == 'recommendation' %}#f6ad55{% elif cat.slug == 'complaint' %}#fc8181{% else %}#4a5568{% endif %};width:0%;">
+          </div>
+        </div>
+        <div class="perf-val">{{ cat.resolved }}</div>
+        <div class="perf-pct">{% if cat.total > 0 %}{% widthratio cat.resolved cat.total 100 %}%{% else %}0%{% endif %}</div>
+      </div>
+      {% empty %}
+      <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No Data</div></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Staff Leaderboard -->
+  <div class="p-card">
+    <div class="p-card-head">
+      <div class="section-title">Staff Leaderboard</div>
+      <div class="section-count">By resolutions</div>
+    </div>
+    <div style="padding:0;">
+      {% for entry in staff_leaderboard %}
+      <div class="leaderboard-row">
+        <div class="lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
+        <div class="lb-avatar" style="background:rgba(99,179,237,.12);color:var(--accent);">{{ entry.staff__username|slice:":2"|upper }}</div>
+        <div class="lb-info">
+          <div class="lb-name">{{ entry.staff__username }}</div>
+          <div class="lb-sub">{{ entry.count }} actions</div>
+        </div>
+        <div class="lb-score">{{ entry.count }}</div>
+      </div>
+      {% empty %}
+      <!-- Demo leaderboard -->
+      {% for name, score, col in demo_staff %}
+      <div class="leaderboard-row">
+        <div class="lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
+        <div class="lb-avatar" style="background:rgba(99,179,237,.12);color:var(--accent);">AL</div>
+        <div class="lb-info">
+          <div class="lb-name">alice_staff</div>
+          <div class="lb-sub">14 actions this week</div>
+        </div>
+        <div class="lb-score">42</div>
+      </div>
+      {% empty %}{% endfor %}
+      <div class="leaderboard-row"><div class="lb-rank silver">2</div><div class="lb-avatar" style="background:rgba(183,148,244,.12);color:var(--accent5);">BO</div><div class="lb-info"><div class="lb-name">bob_staff</div><div class="lb-sub">9 actions this week</div></div><div class="lb-score">31</div></div>
+      <div class="leaderboard-row"><div class="lb-rank bronze">3</div><div class="lb-avatar" style="background:rgba(104,211,145,.12);color:var(--accent3);">CA</div><div class="lb-info"><div class="lb-name">carol_t</div><div class="lb-sub">6 actions this week</div></div><div class="lb-score">18</div></div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('perf-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+  setTimeout(()=>{
+    document.querySelectorAll('.perf-fill[data-w]').forEach(b=>{ b.style.width=b.dataset.w+'%'; });
+  }, 300);
+})();
+</script>

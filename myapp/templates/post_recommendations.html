@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Post Recommendations — Virtual Idea Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+    .category-page { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem; display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; align-items: start; }
+    .form-panel { animation: fadeUp 0.4s ease both; }
+    .panel-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #d4a017; background: #fef9ec; padding: 0.3rem 0.75rem; border-radius: 999px; margin-bottom: 0.85rem; }
+    .panel-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+    .panel-desc { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.6; }
+    .alert { padding: 0.85rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.6rem; }
+    .alert-success { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+    .alert-error   { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+    .category-form { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.05); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.45rem; }
+    .form-control { width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; resize: vertical; }
+    .form-control:focus { border-color: #d4a017; box-shadow: 0 0 0 3px rgba(212,160,23,0.1); background: #fff; }
+    .form-control::placeholder { color: #b0aca3; }
+    textarea.form-control { min-height: 160px; line-height: 1.6; }
+    .char-counter { text-align: right; font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+    .btn-submit { width: 100%; padding: 0.85rem; background: #d4a017; color: #fff; border: none; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn-submit:hover { background: #b8880f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,160,23,0.3); }
+    .recent-panel { animation: fadeUp 0.4s 0.1s ease both; position: sticky; top: calc(68px + 2rem); }
+    .recent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .recent-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+    .recent-count { font-size: 0.72rem; background: #fef9ec; color: #d4a017; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 600; }
+    .post-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .post-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; transition: all 0.2s; position: relative; overflow: hidden; }
+    .post-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #d4a017; border-radius: 3px 0 0 3px; transform: scaleY(0); transform-origin: bottom; transition: transform 0.2s; }
+    .post-card:hover { border-color: #d4a017; transform: translateX(3px); }
+    .post-card:hover::before { transform: scaleY(1); }
+    .post-card-title { font-family: 'Syne', sans-serif; font-size: 0.875rem; font-weight: 700; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .post-card-excerpt { font-size: 0.78rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-card-meta { font-size: 0.7rem; color: #b0aca3; margin-top: 0.5rem; }
+    .empty-posts { text-align: center; padding: 2.5rem 1rem; color: var(--muted); background: var(--surface); border: 1.5px dashed var(--border); border-radius: 12px; font-size: 0.85rem; }
+    .empty-posts i { font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 820px) { .category-page { grid-template-columns: 1fr; } .recent-panel { position: static; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="category-page">
+    <div class="form-panel">
+        <div style="margin-bottom:2rem;">
+            <div class="panel-eyebrow"><i class="fas fa-thumbs-up"></i> Recommendations</div>
+            <h1 class="panel-title">Post a Recommendation</h1>
+            <p class="panel-desc">Suggest improvements, best practices, or changes that could benefit the community.</p>
+        </div>
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+        <div class="category-form">
+            <form method="POST" action="{% url 'post_recommendations' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="title">Title <span style="color:#e53e3e">*</span></label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="What do you recommend?" maxlength="100" required oninput="document.getElementById('title-count').textContent = this.value.length">
+                    <div class="char-counter"><span id="title-count">0</span> / 100</div>
+                </div>
+                <div class="form-group">
+                    <label for="content">Details <span style="color:#e53e3e">*</span></label>
+                    <textarea id="content" name="content" class="form-control" placeholder="Explain your recommendation in detail. Include the problem it solves and expected benefits…" required oninput="document.getElementById('content-count').textContent = this.value.length"></textarea>
+                    <div class="char-counter"><span id="content-count">0</span> characters</div>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-thumbs-up"></i> Submit Recommendation</button>
+            </form>
+        </div>
+    </div>
+    <aside class="recent-panel">
+        <div class="recent-header">
+            <div class="recent-title">Recent Recommendations</div>
+            <span class="recent-count">{{ recent_posts|length }}</span>
+        </div>
+        <div class="post-list">
+            {% for post in recent_posts %}
+            <div class="post-card">
+                <div class="post-card-title">{{ post.title }}</div>
+                <div class="post-card-excerpt">{{ post.content }}</div>
+                <div class="post-card-meta"><i class="fas fa-clock"></i> {{ post.created_at|timesince }} ago</div>
+            </div>
+            {% empty %}
+            <div class="empty-posts"><i class="fas fa-thumbs-up"></i>No recommendations yet.<br>Share yours!</div>
+            {% endfor %}
+        </div>
+    </aside>
+</div>
+{% endblock %}

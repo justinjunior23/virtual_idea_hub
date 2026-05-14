@@ -1,0 +1,135 @@
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<div class="topbar">
+  <div>
+    <div class="page-title">{{ category_label }}</div>
+    <div class="page-sub">{{ category_desc }}</div>
+  </div>
+  <div class="topbar-right">
+    <div class="time-badge"><span class="status-dot"></span><span id="cat-clock">—</span></div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row cols-4" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s">
+    <div class="stat-box-label">Total</div>
+    <div class="stat-box-val">{{ cat_total|default:"0" }}</div>
+    <div class="stat-box-sub">All time</div>
+  </div>
+  <div class="stat-box orange" style="animation-delay:.1s">
+    <div class="stat-box-label">Pending</div>
+    <div class="stat-box-val">{{ cat_pending|default:"0" }}</div>
+    <div class="stat-box-sub">Awaiting action</div>
+  </div>
+  <div class="stat-box green" style="animation-delay:.15s">
+    <div class="stat-box-label">Resolved</div>
+    <div class="stat-box-val">{{ cat_resolved|default:"0" }}</div>
+    <div class="stat-box-sub">Completed</div>
+  </div>
+  <div class="stat-box purple" style="animation-delay:.2s">
+    <div class="stat-box-label">This Week</div>
+    <div class="stat-box-val">{{ cat_this_week|default:"0" }}</div>
+    <div class="stat-box-sub">New submissions</div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <input class="filter-input" type="text" id="cat-search" placeholder="Search submissions…" style="flex:1;min-width:200px;max-width:320px;">
+  <select class="filter-select" id="cat-status-filter" onchange="filterRows()">
+    <option value="">All Status</option>
+    <option value="pending">Pending</option>
+    <option value="in_review">In Review</option>
+    <option value="resolved">Resolved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+  <a href="/staff/{{ category_slug }}/" class="filter-btn">⊞ Full List View</a>
+</div>
+
+<!-- Table -->
+<div class="p-table-wrap" style="animation-delay:.25s;">
+  <table class="p-table" id="cat-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title / Subject</th>
+        <th>Submitted By</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="cat-tbody">
+      {% for post in posts %}
+      <tr data-status="{{ post.status }}">
+        <td style="color:var(--muted2);font-size:11px;">#{{ post.pk }}</td>
+        <td>
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px;">
+            {% if post.title %}{{ post.title|truncatechars:60 }}{% elif post.report_name %}{{ post.report_name|truncatechars:60 }}{% else %}—{% endif %}
+          </div>
+          {% if post.content %}
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px;">{{ post.content|truncatechars:80 }}</div>
+          {% endif %}
+        </td>
+        <td>
+          {% if post.is_anonymous %}
+          <span style="font-size:11px;color:var(--muted2);">◌ Anonymous</span>
+          {% elif post.user %}
+          <span style="font-size:11px;color:var(--text);">{{ post.user.username }}</span>
+          {% else %}
+          <span style="font-size:11px;color:var(--muted2);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if post.status == 'pending' %}   <span class="badge pending">Pending</span>
+          {% elif post.status == 'in_review' %}<span class="badge review">In Review</span>
+          {% elif post.status == 'resolved' %} <span class="badge resolved">Resolved</span>
+          {% elif post.status == 'rejected' %} <span class="badge rejected">Rejected</span>
+          {% else %}<span class="badge pending">{{ post.status }}</span>{% endif %}
+        </td>
+        <td style="font-size:11px;color:var(--muted2);white-space:nowrap;">{{ post.created_at|date:"M d, Y" }}</td>
+        <td>
+          <a href="/staff/{{ category_slug }}/{{ post.pk }}/" style="font-size:10px;color:var(--accent);text-decoration:none;border:1px solid rgba(99,179,237,.2);padding:4px 12px;border-radius:6px;white-space:nowrap;transition:all .2s;" onmouseover="this.style.background='rgba(99,179,237,.1)'" onmouseout="this.style.background='transparent'">Review →</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <div class="empty-icon">{{ category_icon|default:"📋" }}</div>
+            <div class="empty-title">No {{ category_label }} Yet</div>
+            <div class="empty-desc">Submissions in this category will appear here once users start posting.</div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+(function(){
+  const cl = document.getElementById('cat-clock');
+  if(cl) cl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+
+  const searchEl = document.getElementById('cat-search');
+  const statusEl = document.getElementById('cat-status-filter');
+
+  function filterRows(){
+    const q = (searchEl?.value||'').toLowerCase();
+    const s = statusEl?.value||'';
+    document.querySelectorAll('#cat-tbody tr[data-status]').forEach(row=>{
+      const text = row.textContent.toLowerCase();
+      const matchQ = !q || text.includes(q);
+      const matchS = !s || row.dataset.status === s;
+      row.style.display = (matchQ && matchS) ? '' : 'none';
+    });
+  }
+
+  searchEl?.addEventListener('input', filterRows);
+  statusEl?.addEventListener('change', filterRows);
+  window.filterRows = filterRows;
+})();
+</script>

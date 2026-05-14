@@ -1,0 +1,573 @@
+{% load static %}
+
+<div class="mr-wrap">
+
+    <!-- ── HEADER ── -->
+    <div class="mr-header">
+        <div class="mr-header-left">
+            <span class="mr-eyebrow">
+                <span class="mr-pulse"></span>
+                Live Analytics
+            </span>
+            <h2 class="mr-title">Community Activity</h2>
+            <p class="mr-sub">Platform submissions &amp; engagement across the last 6 months.</p>
+        </div>
+        <div class="mr-header-right">
+            <div class="mr-period-tag">
+                <i class="fas fa-calendar-alt"></i>
+                Last 6 months
+            </div>
+            <button class="mr-export-btn">
+                <i class="fas fa-download"></i>
+                Export CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- ── STAT CARDS ── -->
+    <div class="mr-stats">
+
+        <div class="mr-stat-card" style="--accent:#c9f964;--accent-dim:rgba(201,249,100,0.10);">
+            <div class="msc-top">
+                <span class="msc-label">Latest Month</span>
+                <div class="msc-icon"><i class="fas fa-bolt"></i></div>
+            </div>
+            <div class="msc-value">
+                {% for month in months %}{% if forloop.last %}{{ month.total }}{% endif %}{% endfor %}
+            </div>
+            <div class="msc-bar">
+                <div class="msc-bar-fill" style="--pct:{% for month in months %}{% if forloop.last %}{% widthratio month.total 50 100 %}{% endif %}{% endfor %}%;"></div>
+            </div>
+            <div class="msc-sub">Total reports submitted</div>
+        </div>
+
+        <div class="mr-stat-card" style="--accent:#fb923c;--accent-dim:rgba(251,146,60,0.10);">
+            <div class="msc-top">
+                <span class="msc-label">Growth Status</span>
+                <div class="msc-icon"><i class="fas fa-arrow-trend-up"></i></div>
+            </div>
+            <div class="msc-value msc-value--sm">Active</div>
+            <div class="msc-bar"><div class="msc-bar-fill" style="--pct:72%;"></div></div>
+            <div class="msc-sub">Platform momentum strong</div>
+        </div>
+
+        <div class="mr-stat-card" style="--accent:#a78bfa;--accent-dim:rgba(167,139,250,0.10);">
+            <div class="msc-top">
+                <span class="msc-label">Community</span>
+                <div class="msc-icon"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="msc-value msc-value--sm">Engaged</div>
+            <div class="msc-bar"><div class="msc-bar-fill" style="--pct:85%;"></div></div>
+            <div class="msc-sub">High participation rate</div>
+        </div>
+
+    </div>
+
+    <!-- ── BAR CHART ── -->
+    <div class="mr-chart-card">
+        <div class="mr-section-label" style="margin-bottom:1.25rem;">
+            <i class="fas fa-chart-bar"></i> Submission Trend
+        </div>
+        <div class="mr-bars">
+            {% for month in months %}
+            <div class="mr-bar-col">
+                <div class="mr-bar-track">
+                    <div class="mr-bar-fill" style="--h:{% widthratio month.total 50 100 %}%;">
+                        <span class="mr-bar-tip">{{ month.total }}</span>
+                    </div>
+                </div>
+                <div class="mr-bar-lbl">{{ month.label|slice:":3" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── TABLE ── -->
+    <div class="mr-table-card">
+        <div class="mr-table-top">
+            <div>
+                <div class="mr-section-label"><i class="fas fa-table-list"></i> Monthly Breakdown</div>
+                <p class="mr-table-desc">Detailed report counts per month.</p>
+            </div>
+            <label class="mr-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="mrSearch" placeholder="Filter month…" autocomplete="off">
+            </label>
+        </div>
+
+        <div class="mr-scroll">
+            <table class="mr-table" id="mrTable">
+                <thead>
+                    <tr>
+                        <th style="width:48px">#</th>
+                        <th>Month</th>
+                        <th>Reports</th>
+                        <th>Volume</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month in months %}
+                    <tr>
+                        <td class="mr-idx">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="mr-month-cell">
+                                <div class="mr-avatar">{{ month.label|slice:":1" }}</div>
+                                <div>
+                                    <div class="mr-month-name">{{ month.label }}</div>
+                                    <div class="mr-month-meta">Monthly snapshot</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="mr-count">{{ month.total }}</span></td>
+                        <td>
+                            <div class="mr-mini-bar">
+                                <div class="mr-mini-fill" style="--w:{% widthratio month.total 50 100 %}%;"></div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if month.total > 20 %}
+                                <span class="mr-pill high"><span class="pdot"></span>High</span>
+                            {% elif month.total > 10 %}
+                                <span class="mr-pill mid"><span class="pdot"></span>Moderate</span>
+                            {% else %}
+                                <span class="mr-pill low"><span class="pdot"></span>Low</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.mr-wrap {
+    --bg:      #0c0c0e;
+    --sf:      #111114;
+    --s2:      #17171b;
+    --s3:      #1e1e23;
+    --bd:      rgba(255,255,255,0.06);
+    --bd2:     rgba(255,255,255,0.11);
+    --text:    #f0ece6;
+    --soft:    #908c84;
+    --muted:   #4e4e48;
+    --lime:    #c9f964;
+    --ld:      rgba(201,249,100,0.09);
+    --r:       12px;
+    --rl:      18px;
+
+    background: var(--bg);
+    border: 1px solid var(--bd2);
+    border-radius: 22px;
+    padding: 2.25rem;
+    color: var(--text);
+    font-family: 'DM Sans','Outfit',system-ui,sans-serif;
+    overflow: hidden;
+    position: relative;
+}
+.mr-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--bd) 1px,transparent 1px),
+        linear-gradient(90deg,var(--bd) 1px,transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 70% 50% at 50% 0%,black 30%,transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+.mr-wrap > * { position: relative; z-index: 1; }
+
+/* HEADER */
+.mr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+}
+.mr-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--lime);
+    margin-bottom: 0.6rem;
+}
+.mr-pulse {
+    width: 7px; height: 7px;
+    background: var(--lime);
+    border-radius: 50%;
+    animation: mr-pulse 2s infinite;
+}
+@keyframes mr-pulse {
+    0%  { box-shadow: 0 0 0 0 rgba(201,249,100,.6); }
+    70% { box-shadow: 0 0 0 8px rgba(201,249,100,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(201,249,100,0); }
+}
+.mr-title {
+    font-family: 'Fraunces','Playfair Display',Georgia,serif;
+    font-size: clamp(1.5rem,3vw,2rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    margin-bottom: 0.45rem;
+}
+.mr-sub {
+    color: var(--soft);
+    font-size: 0.84rem;
+    line-height: 1.65;
+    max-width: 440px;
+}
+.mr-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+.mr-period-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--s3);
+    border: 1px solid var(--bd2);
+    border-radius: 8px;
+    padding: 0.48rem 0.85rem;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--soft);
+}
+.mr-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--lime);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 9px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .18s;
+}
+.mr-export-btn:hover {
+    background: #d8ff75;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(201,249,100,.25);
+}
+
+/* STAT CARDS */
+.mr-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.mr-stat-card {
+    background: var(--sf);
+    border: 1px solid var(--bd2);
+    border-radius: var(--rl);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+}
+.mr-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent,var(--lime));
+    opacity: .65;
+    border-radius: 2px 2px 0 0;
+}
+.mr-stat-card:hover {
+    border-color: var(--accent,var(--lime));
+    transform: translateY(-3px);
+}
+.msc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.msc-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--soft);
+}
+.msc-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent-dim,var(--ld));
+    color: var(--accent,var(--lime));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .82rem;
+}
+.msc-value {
+    font-family: 'Fraunces','Playfair Display',serif;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -.05em;
+    line-height: 1;
+    color: var(--accent,var(--lime));
+    margin-bottom: 0.8rem;
+}
+.msc-value--sm { font-size: 1.4rem; padding-top: .2rem; }
+.msc-bar {
+    height: 3px;
+    background: rgba(255,255,255,.05);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: .5rem;
+}
+.msc-bar-fill {
+    height: 100%;
+    width: var(--pct,60%);
+    background: var(--accent,var(--lime));
+    border-radius: 2px;
+    animation: msfill .9s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes msfill { from{width:0} to{width:var(--pct,60%)} }
+.msc-sub { font-size: .7rem; color: var(--muted); }
+
+/* CHART */
+.mr-chart-card {
+    background: var(--sf);
+    border: 1px solid var(--bd2);
+    border-radius: var(--rl);
+    padding: 1.4rem;
+    margin-bottom: 1.5rem;
+}
+.mr-section-label {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--soft);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.mr-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: .7rem;
+    height: 100px;
+}
+.mr-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .45rem;
+    height: 100%;
+}
+.mr-bar-track {
+    flex: 1;
+    width: 100%;
+    background: rgba(255,255,255,.04);
+    border-radius: 5px 5px 2px 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: visible;
+    position: relative;
+}
+.mr-bar-fill {
+    width: 100%;
+    height: var(--h,40%);
+    background: linear-gradient(180deg,rgba(201,249,100,.85) 0%,rgba(201,249,100,.4) 100%);
+    border-radius: 4px 4px 2px 2px;
+    position: relative;
+    animation: barrise 1s cubic-bezier(.22,1,.36,1) both;
+    transition: background .2s;
+    cursor: default;
+}
+@keyframes barrise { from{height:0} to{height:var(--h,40%)} }
+.mr-bar-fill:hover { background: var(--lime); }
+.mr-bar-tip {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: .62rem;
+    font-weight: 800;
+    color: var(--lime);
+    background: var(--s3);
+    border: 1px solid var(--bd2);
+    border-radius: 5px;
+    padding: 1px 5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+}
+.mr-bar-fill:hover .mr-bar-tip { opacity: 1; }
+.mr-bar-lbl {
+    font-size: .65rem;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: .04em;
+}
+
+/* TABLE */
+.mr-table-card {
+    background: var(--sf);
+    border: 1px solid var(--bd2);
+    border-radius: var(--rl);
+    overflow: hidden;
+}
+.mr-table-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.4rem;
+    border-bottom: 1px solid var(--bd);
+    flex-wrap: wrap;
+}
+.mr-table-desc { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
+.mr-search {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    background: var(--s3);
+    border: 1px solid var(--bd2);
+    border-radius: 8px;
+    padding: .48rem .8rem;
+    cursor: text;
+    transition: border-color .2s;
+}
+.mr-search:focus-within {
+    border-color: var(--lime);
+    box-shadow: 0 0 0 3px rgba(201,249,100,.08);
+}
+.mr-search i { color: var(--muted); font-size: .75rem; }
+.mr-search input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: .78rem;
+    width: 150px;
+}
+.mr-search input::placeholder { color: var(--muted); }
+
+.mr-scroll { overflow-x: auto; }
+.mr-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 540px;
+}
+.mr-table thead tr {
+    background: rgba(255,255,255,.025);
+    border-bottom: 1px solid var(--bd);
+}
+.mr-table th {
+    padding: .8rem 1.2rem;
+    text-align: left;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.mr-table td {
+    padding: .95rem 1.2rem;
+    border-bottom: 1px solid var(--bd);
+    font-size: .83rem;
+}
+.mr-table tbody tr:last-child td { border-bottom: none; }
+.mr-table tbody tr { transition: background .15s; }
+.mr-table tbody tr:hover { background: rgba(255,255,255,.02); }
+.mr-table tbody tr.mr-hidden { display: none; }
+
+.mr-idx { color: var(--muted); font-size: .75rem; font-weight: 600; }
+.mr-month-cell { display: flex; align-items: center; gap: .7rem; }
+.mr-avatar {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--ld);
+    border: 1px solid rgba(201,249,100,.18);
+    color: var(--lime);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: .88rem;
+    flex-shrink: 0;
+    font-family: 'Fraunces','Playfair Display',serif;
+}
+.mr-month-name { font-weight: 600; font-size: .86rem; }
+.mr-month-meta { color: var(--muted); font-size: .7rem; margin-top: .12rem; }
+.mr-count { font-weight: 800; color: var(--lime); font-size: .95rem; }
+
+.mr-mini-bar {
+    height: 4px;
+    width: 72px;
+    background: rgba(255,255,255,.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.mr-mini-fill {
+    height: 100%;
+    width: var(--w,50%);
+    background: var(--lime);
+    border-radius: 2px;
+    animation: msfill .9s cubic-bezier(.22,1,.36,1) both;
+}
+
+.mr-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .3rem .7rem;
+    border-radius: 100px;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+}
+.pdot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
+.mr-pill.high { background:rgba(74,222,128,.12); color:#4ade80; }
+.mr-pill.mid  { background:rgba(251,191,36,.12);  color:#fbbf24; }
+.mr-pill.low  { background:rgba(248,113,113,.12); color:#f87171; }
+
+@media(max-width:600px){
+    .mr-wrap { padding:1.2rem; border-radius:16px; }
+    .mr-header { flex-direction:column; }
+    .mr-header-right { width:100%; }
+    .mr-bars { gap:.35rem; }
+}
+</style>
+
+<script>
+(function(){
+    const inp = document.getElementById('mrSearch');
+    if(!inp) return;
+    inp.addEventListener('input', function(){
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('#mrTable tbody tr').forEach(function(row){
+            const nm = row.querySelector('.mr-month-name');
+            if(!nm) return;
+            row.classList.toggle('mr-hidden', !nm.textContent.toLowerCase().includes(q));
+        });
+    });
+})();
+</script>

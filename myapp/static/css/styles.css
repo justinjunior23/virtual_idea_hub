@@ -1,0 +1,97 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Global styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #bc9191;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background-color: #161614;
+    color: #fff;
+    padding: 10px 0;
+}
+
+.logo img {
+    width: 100px; /* Adjust according to your logo size */
+    height: auto;
+    display: block;
+}
+
+nav ul {
+    list-style: none;
+    text-align: right; /* Align links to the right */
+}
+
+nav ul li {
+    display: inline-block; /* Make links behave like inline elements */
+    margin-left: 20px;
+}
+
+nav ul li:first-child {
+    margin-left: 0; /* Remove margin from the first link */
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+main {
+    padding: 200px 0;
+}
+
+footer {
+    background-color: #dd1212;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center; /* Center footer content */
+}
+
+.centered-footer {
+    padding: 20px 0; /* Add some padding for better spacing */
+}
+
+.social-media {
+    list-style: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+    margin-top: 10px; /* Add margin at the top */
+}
+
+.social-media li {
+    display: inline-block; /* Make icons behave like inline elements */
+    margin: 0 10px; /* Add spacing between icons */
+}
+
+.social-media li a {
+    color: #fff; /* Set color of social media icons */
+}
+
+/* Add Font Awesome icons (replace with your preferred method) */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css");
+
+/* Media query for smaller screens */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
+
+    nav ul li {
+        display: block; /* Display links vertically on smaller screens */
+        margin-left: 0; /* Remove left margin for vertical alignment */
+        margin-bottom: 10px; /* Add spacing between vertical links */
+    }
+}
+

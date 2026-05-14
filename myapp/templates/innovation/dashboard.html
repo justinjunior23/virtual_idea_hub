@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="greeting">📢 <span>My Awareness Hub</span></div>
+    </div>
+    <button class="btn btn-blue" onclick="toggleAwarenessForm()">
+        <svg id="awareness-form-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span id="awareness-form-label">Create Awareness</span>
+    </button>
+</div>
+
+<!-- Stats Cards -->
+<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <div class="card" style="flex:1; min-width:140px; text-align:center; padding:1rem;">
+        <div style="font-size:2rem; font-weight:700; color:var(--blue);">{{ total }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">Total Posts</div>
+    </div>
+    <div class="card" style="flex:1; min-width:140px; text-align:center; padding:1rem;">
+        <div style="font-size:2rem; font-weight:700; color:var(--green);">{{ posts|length }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">Showing Now</div>
+    </div>
+</div>
+
+<!-- Inline Create Form (hidden by default) -->
+<div id="awareness-create-form" style="display:none; margin-bottom:1.5rem;">
+    <div class="card" style="border-color: rgba(30,136,229,0.4);">
+        <div class="card-header">
+            <div class="card-title">✍️ New Awareness Post</div>
+            <span class="badge badge-blue">Posting as {{ user.username }}</span>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'create_awareness' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="Awareness post title" required>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea name="content" class="form-control" rows="4" placeholder="Write your awareness message…" required></textarea>
+                </div>
+                <div style="display:flex; gap:0.75rem;">
+                    <button type="submit" class="btn btn-blue" style="flex:1; justify-content:center;">
+                        ✅ Publish Post
+                    </button>
+                    <button type="button" class="btn btn-ghost" onclick="toggleAwarenessForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div style="margin-bottom:1.25rem;">
+    <input 
+        id="awareness-search" 
+        type="text" 
+        class="form-control" 
+        placeholder="🔍 Search your posts…" 
+        value="{{ query }}"
+        oninput="filterAwareness(this.value)"
+    >
+</div>
+
+<!-- Posts Grid -->
+<div class="awareness-grid" id="awareness-grid">
+    {% for post in posts %}
+    <div class="awareness-card" 
+         data-title="{{ post.title|lower }}" 
+         data-content="{{ post.content|lower }}">
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+            <span class="badge badge-blue">Awareness</span>
+            <small style="color:var(--text-muted);">{{ post.created_at|date:"M d, Y" }}</small>
+        </div>
+
+        <div class="awareness-card-title">{{ post.title }}</div>
+        <div class="awareness-card-content">{{ post.content|truncatewords:25 }}</div>
+
+        <div class="awareness-card-actions" style="display:flex; gap:0.5rem; margin-top:1rem;">
+            <!-- Detail / View -->
+            <a href="{% url 'awareness_detail' post.id %}" 
+               class="btn btn-ghost" style="flex:1; justify-content:center; font-size:0.8rem;">
+               👁 View
+            </a>
+            <!-- Edit -->
+            <a href="{% url 'edit_awareness' post.id %}" 
+               class="btn btn-blue" style="flex:1; justify-content:center; font-size:0.8rem;">
+               ✏️ Edit
+            </a>
+            <!-- Delete -->
+            <form method="post" action="{% url 'delete_awareness' post.id %}" 
+                  onsubmit="return confirm('Delete this post?');" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" 
+                        style="width:100%; justify-content:center; font-size:0.8rem;">
+                    🗑 Delete
+                </button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="awareness-empty" id="awareness-empty-state">
+        <h3>No awareness posts yet</h3>
+        <p>Click "Create Awareness" above to write your first post.</p>
+    </div>
+    {% endfor %}
+
+    <div id="awareness-no-results" class="awareness-empty" style="display:none;">
+        <h3>No matching posts</h3>
+        <p>Try a different search term.</p>
+    </div>
+</div>
+
+<script>
+function toggleAwarenessForm() {
+    const form = document.getElementById('awareness-create-form');
+    const icon = document.getElementById('awareness-form-icon');
+    const label = document.getElementById('awareness-form-label');
+    const isOpen = form.style.display !== 'none';
+    form.style.display = isOpen ? 'none' : 'block';
+    label.textContent = isOpen ? 'Create Awareness' : 'Cancel';
+    icon.innerHTML = isOpen
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+    if (!isOpen) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterAwareness(query) {
+    const q = query.toLowerCase().trim();
+    const cards = document.querySelectorAll('#awareness-grid .awareness-card');
+    let visible = 0;
+    cards.forEach(card => {
+        const match = !q || card.dataset.title.includes(q) || card.dataset.content.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('awareness-no-results').style.display =
+        (visible === 0 && q) ? 'block' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     EXPORT partial  →  templates/admin/partials/export.html
+═══════════════════════════════════════════════════════════════ -->
+{% load static %}
+{% include 'admin/partials/_shared_styles.html' %}
+
+<style>
+.export-card { background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;align-items:center;gap:16px;transition:all .2s;cursor:pointer;animation:fadeUp .4s ease both; }
+.export-card:hover { border-color:rgba(99,179,237,.3);background:rgba(99,179,237,.03); }
+.export-icon { width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+.export-info { flex:1; }
+.export-name { font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text); }
+.export-desc { font-size:11px;color:var(--muted2);margin-top:4px; }
+.export-btn  { font-size:11px;font-family:'DM Mono',monospace;padding:8px 18px;border-radius:8px;border:1px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:var(--accent);cursor:pointer;transition:all .2s;text-decoration:none;white-space:nowrap; }
+.export-btn:hover { background:rgba(99,179,237,.15); }
+</style>
+
+<div class="topbar">
+  <div><div class="page-title">Export Reports</div><div class="page-sub">Download data in various formats</div></div>
+  <div class="topbar-right"><div class="time-badge"><span class="status-dot"></span><span id="exp-clock">—</span></div></div>
+</div>
+
+<div class="stat-row cols-3" style="margin-bottom:28px;">
+  <div class="stat-box blue" style="animation-delay:.05s"><div class="stat-box-label">Total Posts</div><div class="stat-box-val">{{ total_posts|default:"0" }}</div><div class="stat-box-sub">Ready to export</div></div>
+  <div class="stat-box green" style="animation-delay:.1s"><div class="stat-box-label">Total Users</div><div class="stat-box-val">{{ total_users|default:"0" }}</div><div class="stat-box-sub">User records</div></div>
+  <div class="stat-box orange" style="animation-delay:.15s"><div class="stat-box-label">Categories</div><div class="stat-box-val">8</div><div class="stat-box-sub">Data sets</div></div>
+</div>
+
+<div class="section-header"><div class="section-title">Available Exports</div></div>
+<div style="display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease .2s both;">
+  <div class="export-card"><div class="export-icon" style="background:rgba(99,179,237,.1);">📊</div><div class="export-info"><div class="export-name">Full Dashboard Report</div><div class="export-desc">All categories, statuses, and user stats in one file</div></div><a href="/admin-dashboard/export/csv/" class="export-btn">⬇ CSV</a></div>
+  <div class="export-card" style="animation-delay:.05s"><div class="export-icon" style="background:rgba(104,211,145,.1);">👥</div><div class="export-info"><div class="export-name">User List Export</div><div class="export-desc">All registered users with roles and join dates</div></div><a href="{% url 'admin_user_list' %}" class="export-btn">View Users</a></div>
+  <div class="export-card" style="animation-delay:.1s"><div class="export-icon" style="background:rgba(252,129,129,.12);">⚠</div><div class="export-info"><div class="export-name">Emergency Queue</div><div class="export-desc">All unresolved emergency submissions</div></div><a href="/staff/emergency/" class="export-btn">View →</a></div>
+  <div class="export-card" style="animation-delay:.15s"><div class="export-icon" style="background:rgba(246,173,85,.1);">💬</div><div class="export-info"><div class="export-name">Staff Feedback Log</div><div class="export-desc">All responses and status changes by staff</div></div><a href="/admin-dashboard/staff-responses/" class="export-btn">View →</a></div>
+</div>
+<script>(function(){ document.getElementById('exp-clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false}); })();</script>

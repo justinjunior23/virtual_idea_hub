@@ -1,0 +1,51 @@
+<!-- profile.html -->
+
+{% extends 'base.html' %}
+{% block title %}Profile - {{ user.username }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>User Profile: {{ user.username }}</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>User Information</h2>
+            <ul>
+                <li><strong>Username:</strong> {{ user.username }}</li>
+                <li><strong>Email:</strong> {{ user.email }}</li>
+                <!-- Add more user information fields as needed -->
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2>Settings</h2>
+            <!-- Example settings: Allow user to update profile picture, change password, etc. -->
+            <form method="post" action="{% url 'profile_settings_submit' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="profile_picture">Profile Picture:</label>
+                    <input type="file" class="form-control-file" id="profile_picture" name="profile_picture">
+                </div>
+                <div class="form-group">
+                    <label for="password">Change Password:</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <!-- Add more settings fields as needed -->
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activity Feed or User-generated Content -->
+    <h2>Activity Feed</h2>
+    <!-- Example activity feed: Display user's recent activity, posts, comments, etc. -->
+    <div class="activity-feed">
+        <ul>
+            {% for activity in user.activity_feed %}
+                <li>{{ activity }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Add more sections for user-generated content if needed -->
+</div>
+{% endblock %}

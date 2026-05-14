@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings</title>
+    <!-- Add your CSS links or styles here -->
+</head>
+<body>
+    <h1>Profile Settings</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <!-- Add your form fields here -->
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br>
+        
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email"><br>
+        
+        <!-- Add other profile settings fields as needed -->
+        
+        <button type="submit">Submit</button>
+    </form>
+    
+    <!-- Add any other content or messages you want to display after form submission -->
+    
+</body>
+</html>
